@@ -1,0 +1,52 @@
+{
+  "schema": 1,
+  "proximoId": 3,
+  "licoes": [
+    {
+      "id": "L-001",
+      "texto": "Crie todos os arquivos mapeados na tarefa antes de executar a auditoria final.",
+      "chave": "ARQUIVO_INEXISTENTE::crie todos os arquivos mapeados na tarefa antes de executar a auditoria final",
+      "sinal": "ARQUIVO_INEXISTENTE",
+      "escopo": null,
+      "status": "candidata",
+      "recorrencia": 1,
+      "features": [
+        "catalogo-disponibilidade"
+      ],
+      "evidencias": [
+        {
+          "fonte": "T-002",
+          "feature": "catalogo-disponibilidade",
+          "quando": "2026-11-05T23:45:02.691Z",
+          "gitRev": "658b99d"
+        }
+      ],
+      "penalidades": 0,
+      "criadaEm": "2026-11-05T23:45:02.691Z",
+      "ultimaVez": "2026-11-05T23:45:02.691Z"
+    },
+    {
+      "id": "L-002",
+      "texto": "Antes de concluir uma feature, crie um teste anotado para cada critério de aceite e execute o verify.",
+      "chave": "AC_SEM_TESTE::antes de concluir uma feature crie um teste anotado para cada criterio de aceite e execute o verify",
+      "sinal": "AC_SEM_TESTE",
+      "escopo": null,
+      "status": "candidata",
+      "recorrencia": 1,
+      "features": [
+        "catalogo-disponibilidade"
+      ],
+      "evidencias": [
+        {
+          "fonte": "AC-011",
+          "feature": "catalogo-disponibilidade",
+          "quando": "2026-11-05T23:45:02.729Z",
+          "gitRev": "658b99d"
+        }
+      ],
+      "penalidades": 0,
+      "criadaEm": "2026-11-05T23:45:02.729Z",
+      "ultimaVez": "2026-11-05T23:45:02.729Z"
+    }
+  ]
+}

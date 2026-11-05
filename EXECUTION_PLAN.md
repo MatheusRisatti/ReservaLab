@@ -1,6 +1,8 @@
 # Plano de Execução (Design Tasks Harness) — ReservaLab
 
 > **Status Atual:** A **Fase 0 (CORE)** já foi 100% concluída e testada. As **Trilhas A e B** podem ser executadas em paralelo por desenvolvedores independentes.
+>
+> **Divisão confirmada em 04/11/2026:** Gustavo é responsável pela **Trilha A (Módulo do Usuário)**. O amigo desenvolvedor é responsável pela **Trilha B (Módulo Administrador)**.
 
 ---
 
@@ -15,7 +17,7 @@
                  ┌─────────────────┴─────────────────┐
                  ▼                                   ▼
 ┌─────────────────────────────────┐ ┌─────────────────────────────────┐
-│     TRILHA A (Dev 1)            │ │     TRILHA B (Dev 2)            │
+│     TRILHA A (Gustavo)          │ │     TRILHA B (Amigo dev)        │
 │ Módulo Usuário                  │ │ Módulo Administrador            │
 │                                 │ │                                 │
 │ - Auth (Register / Login / Me)  │ │ - CRUD Categorias & Itens       │
@@ -31,7 +33,7 @@
 ---
 
 ## TRILHA A: Módulo do Usuário (Jornada do Usuário Comum)
-> **Responsável:** Desenvolvedor 1  
+> **Responsável:** Gustavo
 > **Foco:** Autoatendimento de reservas, catálogo dinâmico, status dinâmico do usuário e histórico pessoal.
 
 ### Back-end (Endpoints & Regras de Negócio — Trilha A)
@@ -102,7 +104,7 @@
 ---
 
 ## TRILHA B: Módulo do Administrador (Gestão & Painel Diário)
-> **Responsável:** Desenvolvedor 2  
+> **Responsável:** Amigo desenvolvedor
 > **Foco:** Painel diário operacional (retiradas e devoluções), CRUD de ativos/categorias, regras do sistema e penalidades.
 
 ### Back-end (Endpoints & Regras de Negócio — Trilha B)

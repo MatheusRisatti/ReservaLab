@@ -1,0 +1,52 @@
+{
+  "feature": "catalogo-disponibilidade",
+  "timestamp": "2026-11-05T23:44:24.756Z",
+  "gitRev": "658b99d",
+  "command": "cd ../server && npx jest --runInBand --json --outputFile=../reserva-lab/.spec/jest-raw.json",
+  "reporter": "jest-json",
+  "exitCode": 0,
+  "testsParsed": 19,
+  "results": {
+    "AC-011": {
+      "status": "pass",
+      "testName": "TASK-A02 — catálogo e disponibilidade de equipamentos AC-011: lista todas as categorias @spec:AC-011 AC-011: lista todas as categorias @spec:AC-011",
+      "method": "jest-json"
+    },
+    "AC-012": {
+      "status": "pass",
+      "testName": "TASK-A02 — catálogo e disponibilidade de equipamentos AC-012: lista somente equipamentos ativos com categoria @spec:AC-012 AC-012: lista somente equipamentos ativos com categoria @spec:AC-012",
+      "method": "jest-json"
+    },
+    "AC-013": {
+      "status": "pass",
+      "testName": "TASK-A02 — catálogo e disponibilidade de equipamentos AC-013: filtra equipamentos ativos por categoria @spec:AC-013 AC-013: filtra equipamentos ativos por categoria @spec:AC-013",
+      "method": "jest-json"
+    },
+    "AC-014": {
+      "status": "pass",
+      "testName": "TASK-A02 — catálogo e disponibilidade de equipamentos AC-014: marca item com reserva sobreposta como indisponível @spec:AC-014 AC-014: marca item com reserva sobreposta como indisponível @spec:AC-014",
+      "method": "jest-json"
+    },
+    "AC-015": {
+      "status": "pass",
+      "testName": "TASK-A02 — catálogo e disponibilidade de equipamentos AC-015: marca item com manutenção sobreposta como indisponível @spec:AC-015 AC-015: marca item com manutenção sobreposta como indisponível @spec:AC-015",
+      "method": "jest-json"
+    },
+    "AC-016": {
+      "status": "pass",
+      "testName": "TASK-A02 — catálogo e disponibilidade de equipamentos AC-016: marca item sem conflito como disponível @spec:AC-016 AC-016: marca item sem conflito como disponível @spec:AC-016",
+      "method": "jest-json"
+    },
+    "AC-017": {
+      "status": "pass",
+      "testName": "TASK-A02 — catálogo e disponibilidade de equipamentos AC-017: recusa período incompleto, inválido ou invertido @spec:AC-017 AC-017: recusa período incompleto, inválido ou invertido @spec:AC-017",
+      "method": "jest-json"
+    },
+    "AC-018": {
+      "status": "pass",
+      "testName": "TASK-A02 — catálogo e disponibilidade de equipamentos AC-018: sem período usa empréstimo ativo e manutenção aberta @spec:AC-018 AC-018: sem período usa empréstimo ativo e manutenção aberta @spec:AC-018",
+      "method": "jest-json"
+    }
+  },
+  "principles": {}
+}

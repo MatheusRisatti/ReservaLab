@@ -1,14 +1,15 @@
 {
-  "testCommand": "node --test",
-  "reporter": "tap",
+  "testCommand": "cd ../server && npx jest --runInBand --json --outputFile=../reserva-lab/.spec/jest-raw.json",
+  "reporter": "jest-json",
+  "reporterOutputFile": ".spec/jest-raw.json",
   "testGlobs": [
-    "test/**",
-    "tests/**",
-    "src/**/*.test.*",
-    "src/**/*.spec.*",
-    "__tests__/**"
+    "../server/tests/**/*.test.ts"
   ],
   "srcGlobs": [
-    "src/**"
+    "../server/src/controllers/auth.controller.ts",
+    "../server/src/controllers/catalog.controller.ts",
+    "../server/src/routes/auth.routes.ts",
+    "../server/src/routes/catalog.routes.ts",
+    "../server/src/schemas/auth.schema.ts"
   ]
 }

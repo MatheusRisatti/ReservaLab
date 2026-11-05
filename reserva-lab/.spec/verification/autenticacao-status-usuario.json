@@ -1,0 +1,62 @@
+{
+  "feature": "autenticacao-status-usuario",
+  "timestamp": "2026-11-05T23:44:39.265Z",
+  "gitRev": "658b99d",
+  "command": "cd ../server && npx jest --runInBand --json --outputFile=../reserva-lab/.spec/jest-raw.json",
+  "reporter": "jest-json",
+  "exitCode": 0,
+  "testsParsed": 19,
+  "results": {
+    "AC-001": {
+      "status": "pass",
+      "testName": "TASK-A01 — autenticação e status dinâmico do usuário AC-001: cria uma conta USER sem expor a senha @spec:AC-001 AC-001: cria uma conta USER sem expor a senha @spec:AC-001",
+      "method": "jest-json"
+    },
+    "AC-002": {
+      "status": "pass",
+      "testName": "TASK-A01 — autenticação e status dinâmico do usuário AC-002: recusa dados inválidos de cadastro @spec:AC-002 AC-002: recusa dados inválidos de cadastro @spec:AC-002",
+      "method": "jest-json"
+    },
+    "AC-003": {
+      "status": "pass",
+      "testName": "TASK-A01 — autenticação e status dinâmico do usuário AC-003: recusa e-mail já cadastrado @spec:AC-003 AC-003: recusa e-mail já cadastrado @spec:AC-003",
+      "method": "jest-json"
+    },
+    "AC-004": {
+      "status": "pass",
+      "testName": "TASK-A01 — autenticação e status dinâmico do usuário AC-004: devolve token e dados públicos no login válido @spec:AC-004 AC-004: devolve token e dados públicos no login válido @spec:AC-004",
+      "method": "jest-json"
+    },
+    "AC-005": {
+      "status": "pass",
+      "testName": "TASK-A01 — autenticação e status dinâmico do usuário AC-005: recusa e-mail inexistente e senha incorreta igualmente @spec:AC-005 AC-005: recusa e-mail inexistente e senha incorreta igualmente @spec:AC-005",
+      "method": "jest-json"
+    },
+    "AC-006": {
+      "status": "pass",
+      "testName": "TASK-A01 — autenticação e status dinâmico do usuário AC-006: protege a consulta pessoal sem token @spec:AC-006 AC-006: protege a consulta pessoal sem token @spec:AC-006",
+      "method": "jest-json"
+    },
+    "AC-007": {
+      "status": "pass",
+      "testName": "TASK-A01 — autenticação e status dinâmico do usuário AC-007: prioriza o bloqueio manual @spec:AC-007 AC-007: prioriza o bloqueio manual @spec:AC-007",
+      "method": "jest-json"
+    },
+    "AC-008": {
+      "status": "pass",
+      "testName": "TASK-A01 — autenticação e status dinâmico do usuário AC-008: bloqueia usuário com empréstimo atrasado @spec:AC-008 AC-008: bloqueia usuário com empréstimo atrasado @spec:AC-008",
+      "method": "jest-json"
+    },
+    "AC-009": {
+      "status": "pass",
+      "testName": "TASK-A01 — autenticação e status dinâmico do usuário AC-009: sinaliza quando o limite de reservas está atingido @spec:AC-009 AC-009: sinaliza quando o limite de reservas está atingido @spec:AC-009",
+      "method": "jest-json"
+    },
+    "AC-010": {
+      "status": "pass",
+      "testName": "TASK-A01 — autenticação e status dinâmico do usuário AC-010: libera usuário sem impedimentos @spec:AC-010 AC-010: libera usuário sem impedimentos @spec:AC-010",
+      "method": "jest-json"
+    }
+  },
+  "principles": {}
+}

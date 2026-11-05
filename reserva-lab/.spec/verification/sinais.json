@@ -1,0 +1,194 @@
+{
+  "schema": 1,
+  "sinais": {
+    "ARQUIVO_INEXISTENTE::autenticacao-status-usuario::T-001": {
+      "codigo": "ARQUIVO_INEXISTENTE",
+      "feature": "autenticacao-status-usuario",
+      "ref": "T-001",
+      "ocorrencias": 4,
+      "primeiraVez": "2026-11-05T23:28:31.546Z",
+      "ultimaVez": "2026-11-05T23:28:31.547Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::autenticacao-status-usuario::AC-001": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "autenticacao-status-usuario",
+      "ref": "AC-001",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:28:31.547Z",
+      "ultimaVez": "2026-11-05T23:28:31.547Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::autenticacao-status-usuario::AC-002": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "autenticacao-status-usuario",
+      "ref": "AC-002",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:28:31.547Z",
+      "ultimaVez": "2026-11-05T23:28:31.547Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::autenticacao-status-usuario::AC-003": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "autenticacao-status-usuario",
+      "ref": "AC-003",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:28:31.547Z",
+      "ultimaVez": "2026-11-05T23:28:31.547Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::autenticacao-status-usuario::AC-004": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "autenticacao-status-usuario",
+      "ref": "AC-004",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:28:31.547Z",
+      "ultimaVez": "2026-11-05T23:28:31.547Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::autenticacao-status-usuario::AC-005": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "autenticacao-status-usuario",
+      "ref": "AC-005",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:28:31.547Z",
+      "ultimaVez": "2026-11-05T23:28:31.547Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::autenticacao-status-usuario::AC-006": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "autenticacao-status-usuario",
+      "ref": "AC-006",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:28:31.547Z",
+      "ultimaVez": "2026-11-05T23:28:31.547Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::autenticacao-status-usuario::AC-007": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "autenticacao-status-usuario",
+      "ref": "AC-007",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:28:31.547Z",
+      "ultimaVez": "2026-11-05T23:28:31.547Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::autenticacao-status-usuario::AC-008": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "autenticacao-status-usuario",
+      "ref": "AC-008",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:28:31.547Z",
+      "ultimaVez": "2026-11-05T23:28:31.547Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::autenticacao-status-usuario::AC-009": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "autenticacao-status-usuario",
+      "ref": "AC-009",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:28:31.547Z",
+      "ultimaVez": "2026-11-05T23:28:31.547Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::autenticacao-status-usuario::AC-010": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "autenticacao-status-usuario",
+      "ref": "AC-010",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:28:31.547Z",
+      "ultimaVez": "2026-11-05T23:28:31.547Z",
+      "gitRev": "658b99d"
+    },
+    "ARQUIVO_INEXISTENTE::catalogo-disponibilidade::T-002": {
+      "codigo": "ARQUIVO_INEXISTENTE",
+      "feature": "catalogo-disponibilidade",
+      "ref": "T-002",
+      "ocorrencias": 3,
+      "primeiraVez": "2026-11-05T23:39:45.947Z",
+      "ultimaVez": "2026-11-05T23:39:45.947Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::catalogo-disponibilidade::AC-011": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "catalogo-disponibilidade",
+      "ref": "AC-011",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:39:45.947Z",
+      "ultimaVez": "2026-11-05T23:39:45.947Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::catalogo-disponibilidade::AC-012": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "catalogo-disponibilidade",
+      "ref": "AC-012",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:39:45.947Z",
+      "ultimaVez": "2026-11-05T23:39:45.947Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::catalogo-disponibilidade::AC-013": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "catalogo-disponibilidade",
+      "ref": "AC-013",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:39:45.947Z",
+      "ultimaVez": "2026-11-05T23:39:45.947Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::catalogo-disponibilidade::AC-014": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "catalogo-disponibilidade",
+      "ref": "AC-014",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:39:45.947Z",
+      "ultimaVez": "2026-11-05T23:39:45.947Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::catalogo-disponibilidade::AC-015": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "catalogo-disponibilidade",
+      "ref": "AC-015",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:39:45.947Z",
+      "ultimaVez": "2026-11-05T23:39:45.947Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::catalogo-disponibilidade::AC-016": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "catalogo-disponibilidade",
+      "ref": "AC-016",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:39:45.947Z",
+      "ultimaVez": "2026-11-05T23:39:45.947Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::catalogo-disponibilidade::AC-017": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "catalogo-disponibilidade",
+      "ref": "AC-017",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:39:45.947Z",
+      "ultimaVez": "2026-11-05T23:39:45.947Z",
+      "gitRev": "658b99d"
+    },
+    "AC_SEM_TESTE::catalogo-disponibilidade::AC-018": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "catalogo-disponibilidade",
+      "ref": "AC-018",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:39:45.947Z",
+      "ultimaVez": "2026-11-05T23:39:45.947Z",
+      "gitRev": "658b99d"
+    },
+    "VERIFY_OBSOLETO::autenticacao-status-usuario::—": {
+      "codigo": "VERIFY_OBSOLETO",
+      "feature": "autenticacao-status-usuario",
+      "ref": "—",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:44:29.929Z",
+      "ultimaVez": "2026-11-05T23:44:29.930Z",
+      "gitRev": "658b99d"
+    }
+  }
+}

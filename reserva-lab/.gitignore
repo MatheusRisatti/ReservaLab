@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+.spec/jest-raw.json
 
 # Editor directories and files
 .vscode/*
