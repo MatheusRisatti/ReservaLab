@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum ReservationStatus {
+  SCHEDULED
+  ACTIVE_LOAN
+  COMPLETED
+  NO_SHOW
+  CANCELLED
+}
+
+model User {
+  id                  String   @id @default(uuid())
+  name                String
+  email               String   @unique
+  password_hash       String
+  role                Role     @default(USER)
+  is_manually_blocked Boolean  @default(false)
+
+  reservations        Reservation[]
+  created_at          DateTime @default(now())
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  items       Item[]
+}
+
+model Item {
+  id             String              @id @default(uuid())
+  name           String
+  patrimony_code String              @unique
+  is_active      Boolean             @default(true)
+  category_id    String
+  category       Category            @relation(fields: [category_id], references: [id])
+
+  reservations   Reservation[]
+  maintenance    MaintenanceRecord[]
+}
+
+model Reservation {
+  id                 String            @id @default(uuid())
+  user_id            String
+  item_id            String
+  expected_pickup_at DateTime
+  expected_return_at DateTime
+  status             ReservationStatus @default(SCHEDULED)
+
+  user               User              @relation(fields: [user_id], references: [id])
+  item               Item              @relation(fields: [item_id], references: [id])
+  loan               Loan?
+
+  created_at         DateTime          @default(now())
+}
+
+model Loan {
+  id                 String      @id @default(uuid())
+  reservation_id     String      @unique
+  actual_pickup_at   DateTime    @default(now())
+  actual_return_at   DateTime?
+  return_observation String?
+
+  reservation        Reservation @relation(fields: [reservation_id], references: [id])
+}
+
+model MaintenanceRecord {
+  id          String    @id @default(uuid())
+  item_id     String
+  start_date  DateTime  @default(now())
+  end_date    DateTime?
+  description String
+
+  item        Item      @relation(fields: [item_id], references: [id])
+}
+
+model SystemSettings {
+  id                   String   @id @default(uuid())
+  max_rent_days        Int      @default(14)
+  max_concurrent_items Int      @default(3)
+  updated_at           DateTime @updatedAt
+}
