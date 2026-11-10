@@ -1,23 +1,24 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { FC, ReactNode } from 'react';
 import type { User, UserStatus } from '../types';
 import { api } from '../services/api';
+import { AuthContext } from './useAuth';
 
-interface AuthContextData {
-  user: User | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  isAdmin: boolean;
-  userStatus: UserStatus;
-  login: (token: string, user: User) => void;
-  logout: () => void;
-  refreshUserStatus: () => Promise<void>;
-  loading: boolean;
+const STATUS_MAP: Record<string, UserStatus> = {
+  AVAILABLE: 'LIBERADO',
+  BLOCKED: 'BLOQUEADO',
+  LIMIT_REACHED: 'LIMITE_ATINGIDO',
+};
+
+async function fetchCurrentUser(): Promise<User> {
+  const response = await api.get('/api/auth/me');
+  return {
+    ...response.data.user,
+    status: STATUS_MAP[response.data.status] ?? 'LIBERADO',
+  };
 }
 
-const AuthContext = createContext<AuthContextData>({} as AuthContextData);
-
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
     const storedUser = localStorage.getItem('@ReservaLab:user');
     return storedUser ? JSON.parse(storedUser) : null;
@@ -27,26 +28,49 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return localStorage.getItem('@ReservaLab:token');
   });
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(() => !!localStorage.getItem('@ReservaLab:token'));
 
-  const refreshUserStatus = async () => {
+  const storeUser = useCallback((refreshedUser: User) => {
+    setUser(refreshedUser);
+    localStorage.setItem('@ReservaLab:user', JSON.stringify(refreshedUser));
+  }, []);
+
+  const refreshUserStatus = useCallback(async () => {
     if (!token) return;
     try {
-      const response = await api.get('/api/auth/me');
-      setUser(response.data.user);
-      localStorage.setItem('@ReservaLab:user', JSON.stringify(response.data.user));
+      storeUser(await fetchCurrentUser());
     } catch {
-      // Ignora erro se rota não existir ainda
+      // Falha de rede ou 5xx: mantém a sessão. O 401 chega pelo evento 'auth:unauthorized'.
     }
-  };
+  }, [token, storeUser]);
 
   useEffect(() => {
-    if (token) {
-      refreshUserStatus().finally(() => setLoading(false));
-    } else {
+    if (!token) return;
+    let active = true;
+    fetchCurrentUser()
+      .then((currentUser) => {
+        if (active) storeUser(currentUser);
+      })
+      .catch(() => {
+        // Mantém a sessão em falhas de rede ou 5xx; o 401 chega pelo evento 'auth:unauthorized'.
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [token, storeUser]);
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      setToken(null);
+      setUser(null);
       setLoading(false);
-    }
-  }, [token]);
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
 
   const login = (newToken: string, newUser: User) => {
     localStorage.setItem('@ReservaLab:token', newToken);
@@ -84,11 +108,3 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     </AuthContext.Provider>
   );
 };
-
-export function useAuth(): AuthContextData {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth deve ser utilizado dentro de um AuthProvider');
-  }
-  return context;
-}

@@ -13,7 +13,7 @@ export function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#f8fafc', color: '#0f172a' }}>
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'transparent', color: 'var(--text)' }}>
           <Navbar />
           <main style={{ flex: 1 }}>
             <Routes>

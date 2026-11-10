@@ -20,6 +20,7 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('@ReservaLab:token');
       localStorage.removeItem('@ReservaLab:user');
+      window.dispatchEvent(new Event('auth:unauthorized'));
     }
     return Promise.reject(error);
   }

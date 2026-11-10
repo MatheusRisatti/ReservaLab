@@ -30,6 +30,7 @@ export interface Item {
   name: string;
   patrimony_code: string;
   is_active: boolean;
+  is_available?: boolean;
   category_id: string;
   category?: Category;
 }

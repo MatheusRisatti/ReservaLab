@@ -1,6 +1,9 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
+import { ThemeToggle } from './ThemeToggle';
+
+const linkStyle: React.CSSProperties = { color: 'var(--nav-text)', textDecoration: 'none' };
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, isAdmin, userStatus, logout } = useAuth();
@@ -14,35 +17,40 @@ export const Navbar: React.FC = () => {
   const getStatusBadge = () => {
     switch (userStatus) {
       case 'BLOQUEADO':
-        return <span style={{ backgroundColor: '#ef4444', color: '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem' }}>Bloqueado</span>;
+        return <span className="badge badge-danger">Bloqueado</span>;
       case 'LIMITE_ATINGIDO':
-        return <span style={{ backgroundColor: '#f59e0b', color: '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem' }}>Limite Atingido</span>;
+        return <span className="badge badge-warning">Limite Atingido</span>;
       case 'LIBERADO':
       default:
-        return <span style={{ backgroundColor: '#10b981', color: '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '0.8rem' }}>Liberado</span>;
+        return <span className="badge">Liberado</span>;
     }
   };
 
   return (
-    <nav style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '1rem 2rem',
-      backgroundColor: '#1e293b',
-      color: '#fff',
-      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-    }}>
+    <nav
+      className="site-nav"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '0.75rem',
+        padding: '0.75rem 2rem',
+        backgroundColor: 'var(--nav-bg)',
+        color: 'var(--nav-text)',
+        borderBottom: '1px solid var(--nav-border)',
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-        <Link to="/" style={{ color: '#38bdf8', fontSize: '1.25rem', fontWeight: 'bold', textDecoration: 'none' }}>
-          ReservaLab
+        <Link to="/" className="brand-mark" aria-label="ReservaLab — início">
+          <span>Reserva</span><span className="brand-mark-accent">Lab</span>
         </Link>
         {isAuthenticated && (
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <Link to="/" style={{ color: '#e2e8f0', textDecoration: 'none' }}>Catálogo</Link>
-            <Link to="/minhas-reservas" style={{ color: '#e2e8f0', textDecoration: 'none' }}>Minhas Reservas</Link>
+            <Link to="/" style={linkStyle}>Catálogo</Link>
+            <Link to="/minhas-reservas" style={linkStyle}>Minhas Reservas</Link>
             {isAdmin && (
-              <Link to="/admin" style={{ color: '#f59e0b', fontWeight: '600', textDecoration: 'none' }}>
+              <Link to="/admin" style={{ color: 'var(--nav-accent)', fontWeight: 600, textDecoration: 'none' }}>
                 Painel Admin
               </Link>
             )}
@@ -51,43 +59,21 @@ export const Navbar: React.FC = () => {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <ThemeToggle />
         {isAuthenticated && user ? (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span>{user.name}</span>
               {!isAdmin && getStatusBadge()}
             </div>
-            <button
-              onClick={handleLogout}
-              style={{
-                backgroundColor: '#334155',
-                color: '#fff',
-                border: 'none',
-                padding: '0.5rem 1rem',
-                borderRadius: '6px',
-                cursor: 'pointer'
-              }}
-            >
+            <button type="button" className="btn btn-outline" onClick={handleLogout}>
               Sair
             </button>
           </>
         ) : (
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <Link to="/login" style={{ color: '#e2e8f0', textDecoration: 'none', padding: '0.5rem 1rem' }}>
-              Entrar
-            </Link>
-            <Link
-              to="/register"
-              style={{
-                backgroundColor: '#0284c7',
-                color: '#fff',
-                textDecoration: 'none',
-                padding: '0.5rem 1rem',
-                borderRadius: '6px'
-              }}
-            >
-              Cadastre-se
-            </Link>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <Link to="/login" style={linkStyle}>Entrar</Link>
+            <Link to="/register" className="btn">Cadastre-se</Link>
           </div>
         )}
       </div>
