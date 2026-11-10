@@ -189,6 +189,204 @@
       "primeiraVez": "2026-11-05T23:44:29.929Z",
       "ultimaVez": "2026-11-05T23:44:29.930Z",
       "gitRev": "658b99d"
+    },
+    "ARQUIVO_INEXISTENTE::criacao-reserva-direta::T-003": {
+      "codigo": "ARQUIVO_INEXISTENTE",
+      "feature": "criacao-reserva-direta",
+      "ref": "T-003",
+      "ocorrencias": 5,
+      "primeiraVez": "2026-11-05T23:53:24.278Z",
+      "ultimaVez": "2026-11-05T23:53:24.279Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::criacao-reserva-direta::AC-019": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "criacao-reserva-direta",
+      "ref": "AC-019",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:53:24.279Z",
+      "ultimaVez": "2026-11-05T23:53:24.279Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::criacao-reserva-direta::AC-020": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "criacao-reserva-direta",
+      "ref": "AC-020",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:53:24.279Z",
+      "ultimaVez": "2026-11-05T23:53:24.279Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::criacao-reserva-direta::AC-021": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "criacao-reserva-direta",
+      "ref": "AC-021",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:53:24.279Z",
+      "ultimaVez": "2026-11-05T23:53:24.279Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::criacao-reserva-direta::AC-022": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "criacao-reserva-direta",
+      "ref": "AC-022",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:53:24.279Z",
+      "ultimaVez": "2026-11-05T23:53:24.279Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::criacao-reserva-direta::AC-023": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "criacao-reserva-direta",
+      "ref": "AC-023",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:53:24.279Z",
+      "ultimaVez": "2026-11-05T23:53:24.279Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::criacao-reserva-direta::AC-024": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "criacao-reserva-direta",
+      "ref": "AC-024",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:53:24.279Z",
+      "ultimaVez": "2026-11-05T23:53:24.279Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::criacao-reserva-direta::AC-025": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "criacao-reserva-direta",
+      "ref": "AC-025",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:53:24.279Z",
+      "ultimaVez": "2026-11-05T23:53:24.279Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::criacao-reserva-direta::AC-026": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "criacao-reserva-direta",
+      "ref": "AC-026",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:53:24.279Z",
+      "ultimaVez": "2026-11-05T23:53:24.279Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::criacao-reserva-direta::AC-027": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "criacao-reserva-direta",
+      "ref": "AC-027",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:53:24.279Z",
+      "ultimaVez": "2026-11-05T23:53:24.279Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::criacao-reserva-direta::AC-028": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "criacao-reserva-direta",
+      "ref": "AC-028",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-05T23:53:24.279Z",
+      "ultimaVez": "2026-11-05T23:53:24.279Z",
+      "gitRev": "e23af2d"
+    },
+    "ARQUIVO_INEXISTENTE::historico-cancelamento-reserva::T-004": {
+      "codigo": "ARQUIVO_INEXISTENTE",
+      "feature": "historico-cancelamento-reserva",
+      "ref": "T-004",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-06T00:05:31.800Z",
+      "ultimaVez": "2026-11-06T00:05:31.800Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::historico-cancelamento-reserva::AC-030": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "historico-cancelamento-reserva",
+      "ref": "AC-030",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-06T00:05:31.801Z",
+      "ultimaVez": "2026-11-06T00:05:31.801Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::historico-cancelamento-reserva::AC-031": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "historico-cancelamento-reserva",
+      "ref": "AC-031",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-06T00:05:31.801Z",
+      "ultimaVez": "2026-11-06T00:05:31.801Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::historico-cancelamento-reserva::AC-032": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "historico-cancelamento-reserva",
+      "ref": "AC-032",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-06T00:05:31.801Z",
+      "ultimaVez": "2026-11-06T00:05:31.801Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::historico-cancelamento-reserva::AC-033": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "historico-cancelamento-reserva",
+      "ref": "AC-033",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-06T00:05:31.801Z",
+      "ultimaVez": "2026-11-06T00:05:31.801Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::historico-cancelamento-reserva::AC-034": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "historico-cancelamento-reserva",
+      "ref": "AC-034",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-06T00:05:31.801Z",
+      "ultimaVez": "2026-11-06T00:05:31.801Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::historico-cancelamento-reserva::AC-035": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "historico-cancelamento-reserva",
+      "ref": "AC-035",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-06T00:05:31.801Z",
+      "ultimaVez": "2026-11-06T00:05:31.801Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::historico-cancelamento-reserva::AC-036": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "historico-cancelamento-reserva",
+      "ref": "AC-036",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-06T00:05:31.801Z",
+      "ultimaVez": "2026-11-06T00:05:31.801Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::historico-cancelamento-reserva::AC-037": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "historico-cancelamento-reserva",
+      "ref": "AC-037",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-06T00:05:31.801Z",
+      "ultimaVez": "2026-11-06T00:05:31.801Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::historico-cancelamento-reserva::AC-038": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "historico-cancelamento-reserva",
+      "ref": "AC-038",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-06T00:05:31.801Z",
+      "ultimaVez": "2026-11-06T00:05:31.801Z",
+      "gitRev": "e23af2d"
+    },
+    "AC_SEM_TESTE::historico-cancelamento-reserva::AC-039": {
+      "codigo": "AC_SEM_TESTE",
+      "feature": "historico-cancelamento-reserva",
+      "ref": "AC-039",
+      "ocorrencias": 1,
+      "primeiraVez": "2026-11-06T00:05:31.801Z",
+      "ultimaVez": "2026-11-06T00:05:31.801Z",
+      "gitRev": "e23af2d"
     }
   }
 }

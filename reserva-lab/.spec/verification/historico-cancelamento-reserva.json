@@ -1,0 +1,62 @@
+{
+  "feature": "historico-cancelamento-reserva",
+  "timestamp": "2026-11-06T00:34:41.375Z",
+  "gitRev": "e23af2d",
+  "command": "cd ../server && npx jest --runInBand --json --outputFile=../reserva-lab/.spec/jest-raw.json",
+  "reporter": "jest-json",
+  "exitCode": 0,
+  "testsParsed": 47,
+  "results": {
+    "AC-030": {
+      "status": "pass",
+      "testName": "TASK-A04 — histórico próprio e cancelamento de reserva AC-030: exige autenticação para consultar o histórico @spec:AC-030 AC-030: exige autenticação para consultar o histórico @spec:AC-030",
+      "method": "jest-json"
+    },
+    "AC-031": {
+      "status": "pass",
+      "testName": "TASK-A04 — histórico próprio e cancelamento de reserva AC-031: lista somente reservas do usuário com seus relacionamentos @spec:AC-031 AC-031: lista somente reservas do usuário com seus relacionamentos @spec:AC-031",
+      "method": "jest-json"
+    },
+    "AC-032": {
+      "status": "pass",
+      "testName": "TASK-A04 — histórico próprio e cancelamento de reserva AC-032: devolve lista vazia quando o usuário não possui reservas @spec:AC-032 AC-032: devolve lista vazia quando o usuário não possui reservas @spec:AC-032",
+      "method": "jest-json"
+    },
+    "AC-033": {
+      "status": "pass",
+      "testName": "TASK-A04 — histórico próprio e cancelamento de reserva AC-033: ordena o histórico do mais recente para o mais antigo @spec:AC-033 AC-033: ordena o histórico do mais recente para o mais antigo @spec:AC-033",
+      "method": "jest-json"
+    },
+    "AC-034": {
+      "status": "pass",
+      "testName": "TASK-A04 — histórico próprio e cancelamento de reserva AC-034: exige autenticação para cancelar uma reserva @spec:AC-034 AC-034: exige autenticação para cancelar uma reserva @spec:AC-034",
+      "method": "jest-json"
+    },
+    "AC-035": {
+      "status": "pass",
+      "testName": "TASK-A04 — histórico próprio e cancelamento de reserva AC-035: recusa identificador de reserva inválido @spec:AC-035 AC-035: recusa identificador de reserva inválido @spec:AC-035",
+      "method": "jest-json"
+    },
+    "AC-036": {
+      "status": "pass",
+      "testName": "TASK-A04 — histórico próprio e cancelamento de reserva AC-036: cancela reserva própria agendada e devolve seus dados @spec:AC-036 AC-036: cancela reserva própria agendada e devolve seus dados @spec:AC-036",
+      "method": "jest-json"
+    },
+    "AC-037": {
+      "status": "pass",
+      "testName": "TASK-A04 — histórico próprio e cancelamento de reserva AC-037: recusa cancelamento após retirada ou finalização @spec:AC-037 AC-037: recusa cancelamento após retirada ou finalização @spec:AC-037",
+      "method": "jest-json"
+    },
+    "AC-038": {
+      "status": "pass",
+      "testName": "TASK-A04 — histórico próprio e cancelamento de reserva AC-038: responde 404 sem distinguir reserva inexistente ou alheia @spec:AC-038 AC-038: responde 404 sem distinguir reserva inexistente ou alheia @spec:AC-038",
+      "method": "jest-json"
+    },
+    "AC-039": {
+      "status": "pass",
+      "testName": "TASK-A04 — histórico próprio e cancelamento de reserva AC-039: permite apenas um cancelamento concorrente @spec:AC-039 AC-039: permite apenas um cancelamento concorrente @spec:AC-039",
+      "method": "jest-json"
+    }
+  },
+  "principles": {}
+}

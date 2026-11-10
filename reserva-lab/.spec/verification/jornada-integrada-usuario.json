@@ -1,0 +1,42 @@
+{
+  "feature": "jornada-integrada-usuario",
+  "timestamp": "2026-11-06T00:34:33.792Z",
+  "gitRev": "e23af2d",
+  "command": "cd ../server && npx jest --runInBand --json --outputFile=../reserva-lab/.spec/jest-raw.json",
+  "reporter": "jest-json",
+  "exitCode": 0,
+  "testsParsed": 47,
+  "results": {
+    "AC-040": {
+      "status": "pass",
+      "testName": "TASK-A05 — jornada integrada do usuário AC-040: cadastra e autentica o mesmo usuário @spec:AC-040 AC-040: cadastra e autentica o mesmo usuário @spec:AC-040",
+      "method": "jest-json"
+    },
+    "AC-041": {
+      "status": "pass",
+      "testName": "TASK-A05 — jornada integrada do usuário AC-041: muda de AVAILABLE para LIMIT_REACHED após reservar @spec:AC-041 AC-041: muda de AVAILABLE para LIMIT_REACHED após reservar @spec:AC-041",
+      "method": "jest-json"
+    },
+    "AC-042": {
+      "status": "pass",
+      "testName": "TASK-A05 — jornada integrada do usuário AC-042: cria reserva e a encontra no próprio histórico @spec:AC-042 AC-042: cria reserva e a encontra no próprio histórico @spec:AC-042",
+      "method": "jest-json"
+    },
+    "AC-043": {
+      "status": "pass",
+      "testName": "TASK-A05 — jornada integrada do usuário AC-043: bloqueia a segunda reserva sobreposta com 409 @spec:AC-043 AC-043: bloqueia a segunda reserva sobreposta com 409 @spec:AC-043",
+      "method": "jest-json"
+    },
+    "AC-044": {
+      "status": "pass",
+      "testName": "TASK-A05 — jornada integrada do usuário AC-044: bloqueia reserva acima de 14 dias com 400 @spec:AC-044 AC-044: bloqueia reserva acima de 14 dias com 400 @spec:AC-044",
+      "method": "jest-json"
+    },
+    "AC-045": {
+      "status": "pass",
+      "testName": "TASK-A05 — jornada integrada do usuário AC-045: cancela reserva própria e atualiza o histórico @spec:AC-045 AC-045: cancela reserva própria e atualiza o histórico @spec:AC-045",
+      "method": "jest-json"
+    }
+  },
+  "principles": {}
+}

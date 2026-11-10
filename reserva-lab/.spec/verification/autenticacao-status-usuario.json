@@ -1,11 +1,11 @@
 {
   "feature": "autenticacao-status-usuario",
-  "timestamp": "2026-11-05T23:44:39.265Z",
-  "gitRev": "658b99d",
+  "timestamp": "2026-11-06T00:34:56.326Z",
+  "gitRev": "e23af2d",
   "command": "cd ../server && npx jest --runInBand --json --outputFile=../reserva-lab/.spec/jest-raw.json",
   "reporter": "jest-json",
   "exitCode": 0,
-  "testsParsed": 19,
+  "testsParsed": 47,
   "results": {
     "AC-001": {
       "status": "pass",

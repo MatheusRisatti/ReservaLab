@@ -7,21 +7,21 @@
 
 Corroboradas em múltiplas features. Aplique como guia.
 
-_nenhuma_
+### L-001 — Crie todos os arquivos mapeados na tarefa antes de executar a auditoria final.
+- sinal: `ARQUIVO_INEXISTENTE` · recorrência: 2 feature(s) · penalidades: 0
+- features: catalogo-disponibilidade, criacao-reserva-direta
+- última evidência: T-003 (criacao-reserva-direta, 2026-11-06T00:00:12.837Z)
+
+### L-002 — Antes de concluir uma feature, crie um teste anotado para cada critério de aceite e execute o verify.
+- sinal: `AC_SEM_TESTE` · recorrência: 2 feature(s) · penalidades: 0
+- features: catalogo-disponibilidade, criacao-reserva-direta
+- última evidência: AC-019 (criacao-reserva-direta, 2026-11-06T00:00:11.393Z)
 
 ## Candidatas — em observação, NÃO aplicar ainda
 
 Vistas em uma feature só. Registradas, não confiadas.
 
-### L-001 — Crie todos os arquivos mapeados na tarefa antes de executar a auditoria final.
-- sinal: `ARQUIVO_INEXISTENTE` · recorrência: 1 feature(s) · penalidades: 0
-- features: catalogo-disponibilidade
-- última evidência: T-002 (catalogo-disponibilidade, 2026-11-05T23:45:02.691Z)
-
-### L-002 — Antes de concluir uma feature, crie um teste anotado para cada critério de aceite e execute o verify.
-- sinal: `AC_SEM_TESTE` · recorrência: 1 feature(s) · penalidades: 0
-- features: catalogo-disponibilidade
-- última evidência: AC-011 (catalogo-disponibilidade, 2026-11-05T23:45:02.729Z)
+_nenhuma_
 
 ## Quarentena — aplicadas e falharam, ignorar
 

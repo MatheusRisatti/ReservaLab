@@ -5,6 +5,7 @@ import swaggerDocument from './docs/swagger.json';
 import { errorMiddleware } from './middlewares/error.middleware.js';
 import { authRouter } from './routes/auth.routes.js';
 import { catalogRouter } from './routes/catalog.routes.js';
+import { reservationRouter } from './routes/reservation.routes.js';
 
 export const app = express();
 
@@ -24,5 +25,6 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/auth', authRouter);
 app.use('/api', catalogRouter);
+app.use('/api/reservations', reservationRouter);
 
 app.use(errorMiddleware);

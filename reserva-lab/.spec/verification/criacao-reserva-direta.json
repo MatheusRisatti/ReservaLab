@@ -1,0 +1,67 @@
+{
+  "feature": "criacao-reserva-direta",
+  "timestamp": "2026-11-06T00:34:48.765Z",
+  "gitRev": "e23af2d",
+  "command": "cd ../server && npx jest --runInBand --json --outputFile=../reserva-lab/.spec/jest-raw.json",
+  "reporter": "jest-json",
+  "exitCode": 0,
+  "testsParsed": 47,
+  "results": {
+    "AC-019": {
+      "status": "pass",
+      "testName": "TASK-A03 — criação de reserva direta AC-019: exige autenticação antes de consultar reservas @spec:AC-019 AC-019: exige autenticação antes de consultar reservas @spec:AC-019",
+      "method": "jest-json"
+    },
+    "AC-020": {
+      "status": "pass",
+      "testName": "TASK-A03 — criação de reserva direta AC-020: recusa identificador e datas inválidas @spec:AC-020 AC-020: recusa identificador e datas inválidas @spec:AC-020",
+      "method": "jest-json"
+    },
+    "AC-021": {
+      "status": "pass",
+      "testName": "TASK-A03 — criação de reserva direta AC-021: bloqueia usuário manualmente impedido ou com atraso @spec:AC-021 AC-021: bloqueia usuário manualmente impedido ou com atraso @spec:AC-021",
+      "method": "jest-json"
+    },
+    "AC-022": {
+      "status": "pass",
+      "testName": "TASK-A03 — criação de reserva direta AC-022: recusa nova reserva quando o limite está atingido @spec:AC-022 AC-022: recusa nova reserva quando o limite está atingido @spec:AC-022",
+      "method": "jest-json"
+    },
+    "AC-023": {
+      "status": "pass",
+      "testName": "TASK-A03 — criação de reserva direta AC-023: recusa período acima do máximo configurado @spec:AC-023 AC-023: recusa período acima do máximo configurado @spec:AC-023",
+      "method": "jest-json"
+    },
+    "AC-024": {
+      "status": "pass",
+      "testName": "TASK-A03 — criação de reserva direta AC-024: diferencia equipamento inexistente de inativo @spec:AC-024 AC-024: diferencia equipamento inexistente de inativo @spec:AC-024",
+      "method": "jest-json"
+    },
+    "AC-025": {
+      "status": "pass",
+      "testName": "TASK-A03 — criação de reserva direta AC-025: recusa reserva sobreposta do equipamento @spec:AC-025 AC-025: recusa reserva sobreposta do equipamento @spec:AC-025",
+      "method": "jest-json"
+    },
+    "AC-026": {
+      "status": "pass",
+      "testName": "TASK-A03 — criação de reserva direta AC-026: recusa manutenção sobreposta do equipamento @spec:AC-026 AC-026: recusa manutenção sobreposta do equipamento @spec:AC-026",
+      "method": "jest-json"
+    },
+    "AC-027": {
+      "status": "pass",
+      "testName": "TASK-A03 — criação de reserva direta AC-027: cria reserva SCHEDULED para o usuário autenticado @spec:AC-027 AC-027: cria reserva SCHEDULED para o usuário autenticado @spec:AC-027",
+      "method": "jest-json"
+    },
+    "AC-028": {
+      "status": "pass",
+      "testName": "TASK-A03 — criação de reserva direta AC-028: serializa tentativas simultâneas e cria no máximo uma reserva @spec:AC-028 AC-028: serializa tentativas simultâneas e cria no máximo uma reserva @spec:AC-028",
+      "method": "jest-json"
+    },
+    "AC-029": {
+      "status": "pass",
+      "testName": "TASK-A03 — criação de reserva direta AC-029: usa 14 dias e 3 itens quando não há configuração @spec:AC-029 AC-029: usa 14 dias e 3 itens quando não há configuração @spec:AC-029",
+      "method": "jest-json"
+    }
+  },
+  "principles": {}
+}
