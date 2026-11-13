@@ -25,7 +25,11 @@ export const Login: React.FC = () => {
     try {
       const response = await api.post('/api/auth/login', { email, password });
       login(response.data.token, response.data.user);
-      navigate('/', { replace: true });
+      if (response.data.user?.role === 'ADMIN') {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
     } catch (err) {
       setError(getApiErrorMessage(err, 'Não foi possível entrar. Tente novamente.'));
     } finally {
