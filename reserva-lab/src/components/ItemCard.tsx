@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Item } from '../types';
+import { ItemIllustration, getItemPhoto } from './ItemIllustration';
 
 interface ItemCardProps {
   item: Item;
@@ -12,7 +13,16 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, canReserve, reserveHin
   const available = item.is_available !== false;
 
   return (
-    <article className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+    <article className="card item-card">
+      <div
+        className={[
+          'item-card-media',
+          available ? '' : 'item-card-media-off',
+          getItemPhoto(item) ? 'item-card-media-photo' : '',
+        ].filter(Boolean).join(' ')}
+      >
+        <ItemIllustration item={item} />
+      </div>
       <div>
         <span className={available ? 'badge' : 'badge badge-danger'}>
           {available ? 'Disponível' : 'Indisponível'}
@@ -31,11 +41,8 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, canReserve, reserveHin
           title={!available ? 'Equipamento indisponível neste período' : reserveHint}
           onClick={() => onReserve(item)}
         >
-          Reservar
+          {available ? 'Reservar' : 'Indisponível'}
         </button>
-        {available && !canReserve && reserveHint && (
-          <p className="muted" style={{ fontSize: '0.78rem', marginTop: '0.35rem' }}>{reserveHint}</p>
-        )}
       </div>
     </article>
   );

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { Navbar } from './components/Navbar';
+import { ThemeToggle } from './components/ThemeToggle';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
 import { Login } from './pages/Login';
@@ -15,6 +16,7 @@ export function App() {
       <AuthProvider>
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'transparent', color: 'var(--text)' }}>
           <Navbar />
+          <ThemeToggle />
           <main style={{ flex: 1 }}>
             <Routes>
               {/* Rotas Públicas */}

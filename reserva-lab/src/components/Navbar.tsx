@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/useAuth';
-import { ThemeToggle } from './ThemeToggle';
 
 const linkStyle: React.CSSProperties = { color: 'var(--nav-text)', textDecoration: 'none' };
 
@@ -30,23 +29,20 @@ export const Navbar: React.FC = () => {
     <nav
       className="site-nav"
       style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '0.75rem',
-        padding: '0.75rem 2rem',
         backgroundColor: 'var(--nav-bg)',
         color: 'var(--nav-text)',
         borderBottom: '1px solid var(--nav-border)',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+      <div className="site-nav-brand">
         <Link to="/" className="brand-mark" aria-label="ReservaLab — início">
           <span>Reserva</span><span className="brand-mark-accent">Lab</span>
         </Link>
+      </div>
+
+      <div className="site-nav-links">
         {isAuthenticated && (
-          <div style={{ display: 'flex', gap: '1rem' }}>
+          <>
             <Link to="/" style={linkStyle}>Catálogo</Link>
             <Link to="/minhas-reservas" style={linkStyle}>Minhas Reservas</Link>
             {isAdmin && (
@@ -54,12 +50,11 @@ export const Navbar: React.FC = () => {
                 Painel Admin
               </Link>
             )}
-          </div>
+          </>
         )}
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <ThemeToggle />
+      <div className="site-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         {isAuthenticated && user ? (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

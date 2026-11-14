@@ -94,10 +94,10 @@ export const CatalogPage: React.FC = () => {
       item.patrimony_code.toLowerCase().includes(term)
   );
 
-  let reserveHint: string | undefined;
-  if (userStatus === 'BLOQUEADO') reserveHint = 'Sua conta está bloqueada para novas reservas.';
-  else if (userStatus === 'LIMITE_ATINGIDO') reserveHint = 'Você atingiu o limite de reservas simultâneas.';
-  else if (!validPeriod) reserveHint = 'Escolha o período de retirada e devolução para reservar.';
+  let statusHint: string | undefined;
+  if (userStatus === 'BLOQUEADO') statusHint = 'Sua conta está bloqueada para novas reservas.';
+  else if (userStatus === 'LIMITE_ATINGIDO') statusHint = 'Você atingiu o limite de reservas simultâneas.';
+  const reserveHint = statusHint ?? (!validPeriod ? 'Escolha o período de retirada e devolução para reservar.' : undefined);
   const canReserve = reserveHint === undefined;
 
   const reload = () => setReloadCount((count) => count + 1);
@@ -110,7 +110,7 @@ export const CatalogPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '2rem auto', padding: '0 1rem' }}>
+    <div style={{ maxWidth: '1200px', margin: '2rem auto', padding: '0 1.5rem' }}>
       <h1>Catálogo de Equipamentos</h1>
 
       {successMessage && (
@@ -158,9 +158,13 @@ export const CatalogPage: React.FC = () => {
         <div className="alert alert-error" role="alert" style={{ marginBottom: '1rem' }}>{result.error}</div>
       )}
 
+      {statusHint && (
+        <div className="alert alert-error" role="alert" style={{ marginBottom: '1rem' }}>{statusHint}</div>
+      )}
+
       {!hasPeriod && !periodError && (
         <p className="muted" style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
-          Sem período escolhido, a disponibilidade mostrada é a de agora.
+          Escolha o período de retirada e devolução para reservar. Sem período, a disponibilidade mostrada é a de agora.
         </p>
       )}
 

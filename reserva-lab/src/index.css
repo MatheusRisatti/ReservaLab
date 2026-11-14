@@ -269,3 +269,145 @@ nav.site-nav a.brand-mark {
   outline: 2px solid var(--nav-accent);
   outline-offset: 3px;
 }
+
+/* ---------- Header: marca à esquerda, links centralizados, ações à direita ---------- */
+nav.site-nav {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  padding: 0.75rem 2rem;
+}
+
+.site-nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.site-nav-actions {
+  justify-self: end;
+}
+
+@media (max-width: 860px) {
+  nav.site-nav {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding: 0.75rem 1rem;
+  }
+
+  .site-nav-actions {
+    justify-self: center;
+  }
+}
+
+/* ---------- Botão flutuante de tema (canto inferior direito) ---------- */
+.theme-fab {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+.theme-fab:hover {
+  background: var(--soft);
+  transform: translateY(-2px);
+}
+
+.theme-fab:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--primary), transparent 72%);
+  outline-offset: 2px;
+}
+
+/* ---------- Card de equipamento ---------- */
+.item-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.item-card-media {
+  display: grid;
+  place-items: center;
+  height: 130px;
+  padding: 0.75rem;
+  color: var(--primary);
+  background: var(--soft);
+  border-radius: 12px;
+}
+
+.item-card-media-photo {
+  padding: 0;
+  overflow: hidden;
+  color: inherit;
+}
+
+.item-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+.item-photo-dark {
+  display: none;
+}
+
+:root[data-theme='dark'] .item-photo-light {
+  display: none;
+}
+
+:root[data-theme='dark'] .item-photo-dark {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .item-photo-light {
+    display: none;
+  }
+
+  :root:not([data-theme='light']) .item-photo-dark {
+    display: block;
+  }
+}
+
+.item-card-media svg {
+  max-height: 100%;
+}
+
+.item-card-media-off {
+  color: var(--muted);
+  opacity: 0.65;
+}
+
+.item-card .btn:disabled {
+  opacity: 1;
+  color: var(--muted);
+  background: var(--soft);
+  border-color: var(--border);
+}
+
+/* ---------- Ajustes de navegação e foco ---------- */
+.site-nav .btn-outline {
+  padding: 0.4rem 0.95rem;
+  font-size: 0.9rem;
+}
+
+button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--primary), transparent 72%);
+  outline-offset: 2px;
+}

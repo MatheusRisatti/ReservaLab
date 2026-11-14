@@ -392,7 +392,13 @@ export const AdminDashboardPage: React.FC = () => {
           disabled={isRefreshing}
           style={{ fontSize: '0.85rem', padding: '0.4rem 0.85rem' }}
         >
-          {isRefreshing ? 'Sincronizando...' : '🔄 Sincronizar'}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M21 12a9 9 0 0 1-15.5 6.2M3 12A9 9 0 0 1 18.5 5.8" />
+              <path d="M18.5 2v4h-4M5.5 22v-4h4" />
+            </svg>
+            {isRefreshing ? 'Sincronizando...' : 'Sincronizar'}
+          </span>
         </button>
       </header>
 
