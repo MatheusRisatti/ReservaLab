@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatDurationSummary } from '../../components/ReservationModal';
 import { api } from '../../services/api';
 
-type Tab = 'operacional' | 'equipamentos' | 'regras_usuarios' | 'historico';
+type Tab = 'operacional' | 'analise_pedidos' | 'equipamentos' | 'regras_usuarios' | 'historico';
 
 interface Category {
   id: string;
@@ -14,6 +15,7 @@ interface Item {
   id: string;
   name: string;
   patrimony_code: string;
+  quantity?: number;
   is_active: boolean;
   category_id: string;
   category: Category;
@@ -25,6 +27,11 @@ interface Reservation {
   expected_pickup_at: string;
   expected_return_at: string;
   status: string;
+  approval_status?: 'NOT_REQUIRED' | 'PENDING' | 'APPROVED' | 'REJECTED';
+  request_reason?: string | null;
+  admin_decision_reason?: string | null;
+  decided_at?: string | null;
+  created_at?: string;
   user: {
     id: string;
     name: string;
@@ -62,6 +69,13 @@ interface AdminUser {
   status_reason: string;
 }
 
+function formatDateTimePt(iso: string): string {
+  return new Date(iso).toLocaleString('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  });
+}
+
 export const AdminDashboardPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('operacional');
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
@@ -71,6 +85,14 @@ export const AdminDashboardPage: React.FC = () => {
   // Dados operacionais
   const [pickups, setPickups] = useState<Reservation[]>([]);
   const [returns, setReturns] = useState<Reservation[]>([]);
+
+  // Dados de análise de pedidos de prazo maior
+  const [extensionRequests, setExtensionRequests] = useState<Reservation[]>([]);
+  const [rejectingRequestId, setRejectingRequestId] = useState<string | null>(null);
+  const [rejectReasonMap, setRejectReasonMap] = useState<Record<string, string>>({});
+  const [approveNoteMap, setApproveNoteMap] = useState<Record<string, string>>({});
+  const [rejectHighlightId, setRejectHighlightId] = useState<string | null>(null);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
 
   // Dados de equipamentos e categorias
   const [items, setItems] = useState<Item[]>([]);
@@ -109,7 +131,7 @@ export const AdminDashboardPage: React.FC = () => {
 
   const showFeedback = (text: string, type: 'success' | 'error') => {
     setMessage({ text, type });
-    setTimeout(() => setMessage(null), 4000);
+    setTimeout(() => setMessage(null), 4500);
   };
 
   const loadOperacional = useCallback(async () => {
@@ -122,6 +144,15 @@ export const AdminDashboardPage: React.FC = () => {
       setReturns(returnsRes.data.returns || []);
     } catch (err: any) {
       showFeedback(err.response?.data?.error || 'Erro ao carregar dados operacionais', 'error');
+    }
+  }, []);
+
+  const loadExtensionRequests = useCallback(async () => {
+    try {
+      const res = await api.get('/api/admin/extension-requests');
+      setExtensionRequests(res.data.requests || []);
+    } catch (err: any) {
+      showFeedback(err.response?.data?.error || 'Erro ao carregar solicitações de prazo maior', 'error');
     }
   }, []);
 
@@ -169,13 +200,14 @@ export const AdminDashboardPage: React.FC = () => {
     setIsRefreshing(true);
     await Promise.allSettled([
       loadOperacional(),
+      loadExtensionRequests(),
       loadEquipamentos(),
       loadRegrasEUsuarios(),
       loadHistorico(),
     ]);
     setIsRefreshing(false);
     setInitialLoaded(true);
-  }, [loadOperacional, loadEquipamentos, loadRegrasEUsuarios, loadHistorico]);
+  }, [loadOperacional, loadExtensionRequests, loadEquipamentos, loadRegrasEUsuarios, loadHistorico]);
 
   useEffect(() => {
     refreshAllData();
@@ -221,7 +253,64 @@ export const AdminDashboardPage: React.FC = () => {
     }
   };
 
+  // Ações de Análise de Pedidos de Prazo Maior
+  const handleApproveRequest = async (reservationId: string) => {
+    setReviewingId(reservationId);
+    try {
+      const note = approveNoteMap[reservationId]?.trim() || null;
+      await api.patch(`/api/admin/extension-requests/${reservationId}/review`, {
+        action: 'APPROVE',
+        decision_reason: note,
+      });
+      showFeedback('Solicitação de prazo maior APROVADA! O usuário solicitante já pode visualizar o resultado.', 'success');
+      setRejectingRequestId(null);
+      await Promise.all([loadExtensionRequests(), loadOperacional(), loadHistorico()]);
+    } catch (err: any) {
+      showFeedback(err.response?.data?.error || 'Erro ao aprovar solicitação', 'error');
+    } finally {
+      setReviewingId(null);
+    }
+  };
+
+  const handleRejectRequest = async (reservationId: string) => {
+    const reason = (rejectReasonMap[reservationId] || '').trim();
+    if (reason.length < 3) {
+      setRejectHighlightId(reservationId);
+      showFeedback('Preencha a justificativa obrigatória para reprovar a solicitação.', 'error');
+      return;
+    }
+
+    setReviewingId(reservationId);
+    try {
+      await api.patch(`/api/admin/extension-requests/${reservationId}/review`, {
+        action: 'REJECT',
+        decision_reason: reason,
+      });
+      showFeedback('Solicitação REPROVADA e justificativa enviada ao usuário solicitante. O equipamento foi liberado.', 'success');
+      setRejectingRequestId(null);
+      setRejectHighlightId(null);
+      await Promise.all([loadExtensionRequests(), loadOperacional(), loadHistorico(), loadRegrasEUsuarios()]);
+    } catch (err: any) {
+      showFeedback(err.response?.data?.error || 'Erro ao reprovar solicitação', 'error');
+    } finally {
+      setReviewingId(null);
+    }
+  };
+
   // Ações de Equipamentos
+  const handleUpdateItemQuantity = async (itemId: string, itemName: string, nextQuantity: number) => {
+    if (nextQuantity < 1) return;
+    try {
+      await api.patch(`/api/admin/items/${itemId}/quantity`, { quantity: nextQuantity });
+      setItems((prev) =>
+        prev.map((it) => (it.id === itemId ? { ...it, quantity: nextQuantity } : it))
+      );
+      showFeedback(`Quantidade de "${itemName}" atualizada para ${nextQuantity} unidade(s)!`, 'success');
+    } catch (err: any) {
+      showFeedback(err.response?.data?.error || 'Erro ao alterar quantidade do equipamento', 'error');
+    }
+  };
+
   const handleToggleItemStatus = async (itemId: string, currentStatus: boolean) => {
     try {
       await api.patch(`/api/admin/items/${itemId}/status`, { is_active: !currentStatus });
@@ -344,7 +433,10 @@ export const AdminDashboardPage: React.FC = () => {
         max_rent_days: Number(settings.max_rent_days),
         max_concurrent_items: Number(settings.max_concurrent_items),
       });
-      showFeedback('Parâmetros do sistema atualizados com sucesso!', 'success');
+      showFeedback(
+        `Tempo limite de reserva atualizado para ${settings.max_rent_days} dias (e limite de ${settings.max_concurrent_items} itens simultâneos)!`,
+        'success'
+      );
     } catch (err: any) {
       showFeedback(err.response?.data?.error || 'Erro ao atualizar parâmetros', 'error');
     }
@@ -374,6 +466,9 @@ export const AdminDashboardPage: React.FC = () => {
     return h.status === historyFilterStatus;
   });
 
+  const pendingRequests = extensionRequests.filter((r) => r.approval_status === 'PENDING');
+  const decidedRequests = extensionRequests.filter((r) => r.approval_status !== 'PENDING');
+
   return (
     <div style={{ maxWidth: '1200px', margin: '2rem auto', padding: '0 1.5rem' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
@@ -382,7 +477,7 @@ export const AdminDashboardPage: React.FC = () => {
             Painel de Gestão Administrativa
           </h1>
           <p style={{ color: 'var(--muted)', marginTop: '0.25rem' }}>
-            Controle diário de separação, entregas, devoluções, ativos e parâmetros globais.
+            Controle diário de separação, entregas, devoluções, análise de pedidos de prazo maior e parâmetros globais.
           </p>
         </div>
         <button
@@ -418,13 +513,13 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* Navegação por Abas (troca instantânea sem delay) */}
-      <nav style={{ display: 'flex', gap: '0.5rem', borderBottom: '2px solid var(--border)', marginBottom: '2rem' }}>
+      {/* Navegação por Abas */}
+      <nav style={{ display: 'flex', gap: '0.5rem', borderBottom: '2px solid var(--border)', marginBottom: '2rem', flexWrap: 'wrap' }}>
         <button
           type="button"
           onClick={() => setActiveTab('operacional')}
           style={{
-            padding: '0.75rem 1.25rem',
+            padding: '0.75rem 1.15rem',
             border: 'none',
             background: 'none',
             cursor: 'pointer',
@@ -436,11 +531,33 @@ export const AdminDashboardPage: React.FC = () => {
           Painel Operacional Diário
           {pickups.length > 0 && <span className="badge" style={{ marginLeft: '0.5rem', fontSize: '0.75rem' }}>{pickups.length}</span>}
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('analise_pedidos')}
+          style={{
+            padding: '0.75rem 1.15rem',
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            fontWeight: 600,
+            borderBottom: activeTab === 'analise_pedidos' ? '3px solid var(--primary)' : '3px solid transparent',
+            color: activeTab === 'analise_pedidos' ? 'var(--primary)' : 'var(--muted)',
+          }}
+        >
+          Análise de Pedidos & Tempo Limite
+          {pendingRequests.length > 0 && (
+            <span className="badge badge-warning" style={{ marginLeft: '0.5rem', fontSize: '0.75rem', fontWeight: 700 }}>
+              {pendingRequests.length} pendente{pendingRequests.length === 1 ? '' : 's'}
+            </span>
+          )}
+        </button>
+
         <button
           type="button"
           onClick={() => setActiveTab('equipamentos')}
           style={{
-            padding: '0.75rem 1.25rem',
+            padding: '0.75rem 1.15rem',
             border: 'none',
             background: 'none',
             cursor: 'pointer',
@@ -452,11 +569,12 @@ export const AdminDashboardPage: React.FC = () => {
           Equipamentos & Categorias
           <span className="badge" style={{ marginLeft: '0.5rem', fontSize: '0.75rem' }}>{items.length}</span>
         </button>
+
         <button
           type="button"
           onClick={() => setActiveTab('regras_usuarios')}
           style={{
-            padding: '0.75rem 1.25rem',
+            padding: '0.75rem 1.15rem',
             border: 'none',
             background: 'none',
             cursor: 'pointer',
@@ -467,11 +585,12 @@ export const AdminDashboardPage: React.FC = () => {
         >
           Regras & Gestão de Usuários
         </button>
+
         <button
           type="button"
           onClick={() => setActiveTab('historico')}
           style={{
-            padding: '0.75rem 1.25rem',
+            padding: '0.75rem 1.15rem',
             border: 'none',
             background: 'none',
             cursor: 'pointer',
@@ -491,6 +610,36 @@ export const AdminDashboardPage: React.FC = () => {
       {/* ABA 1: PAINEL OPERACIONAL DIÁRIO */}
       {activeTab === 'operacional' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+          {/* Alerta Rápido caso existam solicitações de prazo maior pendentes */}
+          {pendingRequests.length > 0 && (
+            <div
+              className="alert"
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '1rem',
+                borderLeft: '4px solid var(--warning)',
+                backgroundColor: 'var(--warning-soft)',
+              }}
+            >
+              <div>
+                <strong>⏳ Você possui {pendingRequests.length} solicitação(ões) de prazo maior aguardando análise!</strong>
+                <p style={{ fontSize: '0.86rem', color: 'var(--muted)', marginTop: '0.15rem' }}>
+                  Avalie a justificativa dos usuários para aprovar a reserva estendida ou reprovar liberando o equipamento.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => setActiveTab('analise_pedidos')}
+              >
+                Analisar Pedidos Agora →
+              </button>
+            </div>
+          )}
+
           {/* Seção Retiradas */}
           <section>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -617,7 +766,362 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* ABA 2: EQUIPAMENTOS E CATEGORIAS */}
+      {/* ABA 2: ANÁLISE DE PEDIDOS DE PRAZO MAIOR E GERENCIAMENTO DE TEMPO LIMITE */}
+      {activeTab === 'analise_pedidos' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2.25rem' }}>
+          {/* Card de Gerenciamento Rápido do Tempo Limite de Reserva */}
+          <section className="card" style={{ padding: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>
+                  ⏱️ Gerenciar Tempo Limite Padrão de Reserva
+                </h2>
+                <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginTop: '0.25rem' }}>
+                  Ao selecionar o dia de retirada, o calendário do usuário trava automaticamente a devolução dentro deste prazo máximo. Para prazos superiores, o usuário precisa clicar em <strong>"Solicitar prazo maior"</strong> e enviar uma justificativa para análise abaixo.
+                </p>
+              </div>
+              <span className="badge" style={{ fontSize: '0.88rem', padding: '0.3rem 0.85rem', fontWeight: 700 }}>
+                Limite atual: {settings.max_rent_days} {settings.max_rent_days === 1 ? 'dia' : 'dias'}
+              </span>
+            </div>
+
+            <form
+              onSubmit={handleSaveSettings}
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '1rem',
+                alignItems: 'flex-end',
+                padding: '1rem',
+                borderRadius: '12px',
+                backgroundColor: 'var(--soft)',
+              }}
+            >
+              <div style={{ flex: '1 1 220px' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 650, marginBottom: '0.3rem' }}>
+                  Intervalo máximo de reserva padrão (em dias):
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="365"
+                  className="input"
+                  value={settings.max_rent_days}
+                  onChange={(e) => setSettings({ ...settings, max_rent_days: parseInt(e.target.value, 10) || 1 })}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--muted)', fontWeight: 600 }}>Atalhos rápidos:</span>
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  {[3, 7, 14, 30].map((presetDays) => (
+                    <button
+                      key={presetDays}
+                      type="button"
+                      className={settings.max_rent_days === presetDays ? 'btn' : 'btn btn-outline'}
+                      style={{ padding: '0.45rem 0.75rem', fontSize: '0.82rem' }}
+                      onClick={() => setSettings({ ...settings, max_rent_days: presetDays })}
+                    >
+                      {presetDays} dias
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button type="submit" className="btn" style={{ padding: '0.6rem 1.35rem', fontWeight: 650 }}>
+                Salvar Tempo Limite
+              </button>
+            </form>
+          </section>
+
+          {/* Fila Pendente de Análise de Pedidos */}
+          <section>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: 0 }}>
+                  📋 Solicitações de Prazo Maior Pendentes de Análise
+                </h2>
+                <p style={{ color: 'var(--muted)', fontSize: '0.9rem', margin: 0 }}>
+                  Verifique os dados do solicitante, o período exato (data a data e tempo total) e a justificativa antes de aprovar ou reprovar.
+                </p>
+              </div>
+              <span className="badge badge-warning">{pendingRequests.length} aguardando decisão</span>
+            </div>
+
+            {pendingRequests.length === 0 ? (
+              <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
+                <p className="muted">Nenhuma solicitação de prazo maior pendente de análise no momento.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: '1.1rem' }}>
+                {pendingRequests.map((req) => {
+                  const isRejectOpen = rejectingRequestId === req.id;
+                  const isHighlighted = rejectHighlightId === req.id;
+                  const rejectReason = rejectReasonMap[req.id] || '';
+                  const approveNote = approveNoteMap[req.id] || '';
+                  const isBusy = reviewingId === req.id;
+
+                  return (
+                    <article
+                      key={req.id}
+                      className="card"
+                      style={{
+                        borderLeft: '4px solid var(--warning)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1rem',
+                      }}
+                    >
+                      {/* Cabeçalho: Dados do Equipamento e do Usuário */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                            <span className="badge badge-warning">⏳ Aguardando Análise</span>
+                            <span className="badge">{req.item.patrimony_code}</span>
+                            {req.item.category?.name && (
+                              <span className="muted" style={{ fontSize: '0.8rem' }}>
+                                · {req.item.category.name}
+                              </span>
+                            )}
+                          </div>
+                          <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{req.item.name}</h3>
+                        </div>
+
+                        <div
+                          style={{
+                            padding: '0.6rem 0.9rem',
+                            borderRadius: '10px',
+                            backgroundColor: 'var(--soft)',
+                            fontSize: '0.85rem',
+                          }}
+                        >
+                          <div style={{ fontSize: '0.74rem', textTransform: 'uppercase', color: 'var(--muted)', fontWeight: 700 }}>
+                            👤 Dados do Usuário Solicitante
+                          </div>
+                          <div style={{ fontWeight: 700, color: 'var(--text)' }}>{req.user.name}</div>
+                          <div style={{ color: 'var(--muted)' }}>{req.user.email}</div>
+                        </div>
+                      </div>
+
+                      {/* Dados do Período: Data a Data e Tempo Total */}
+                      <div
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+                          gap: '0.85rem',
+                          padding: '0.85rem 1rem',
+                          borderRadius: '10px',
+                          backgroundColor: 'var(--page)',
+                          border: '1px solid var(--border)',
+                          fontSize: '0.88rem',
+                        }}
+                      >
+                        <div>
+                          <span className="muted" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>
+                            📅 Data e Hora de Retirada
+                          </span>
+                          <strong>{formatDateTimePt(req.expected_pickup_at)}</strong>
+                        </div>
+                        <div>
+                          <span className="muted" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>
+                            📅 Data e Hora de Devolução
+                          </span>
+                          <strong>{formatDateTimePt(req.expected_return_at)}</strong>
+                        </div>
+                        <div>
+                          <span className="muted" style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600 }}>
+                            ⏱️ Tempo Total Solicitado
+                          </span>
+                          <strong style={{ color: 'var(--primary)', fontSize: '0.98rem' }}>
+                            {formatDurationSummary(req.expected_pickup_at, req.expected_return_at)}
+                          </strong>
+                          <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)' }}>
+                            (Limite padrão: {settings.max_rent_days} dias)
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Justificativa do Usuário */}
+                      <div
+                        style={{
+                          padding: '0.85rem 1rem',
+                          borderRadius: '10px',
+                          backgroundColor: 'var(--soft)',
+                          borderLeft: '3px solid var(--primary)',
+                        }}
+                      >
+                        <div style={{ fontSize: '0.76rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '0.25rem' }}>
+                          💬 Justificativa apresentada pelo usuário:
+                        </div>
+                        <p style={{ margin: 0, fontSize: '0.92rem', fontWeight: 500 }}>
+                          "{req.request_reason || 'Sem justificativa informada'}"
+                        </p>
+                      </div>
+
+                      {/* Área de Decisão: Aprovar ou Reprovar com Justificativa Obrigatória */}
+                      {!isRejectOpen ? (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                          <input
+                            type="text"
+                            className="input"
+                            placeholder="Observação opcional para aprovação (ex.: Devolver no laboratório B)..."
+                            value={approveNote}
+                            onChange={(e) =>
+                              setApproveNoteMap((prev) => ({ ...prev, [req.id]: e.target.value }))
+                            }
+                            style={{ flex: '1 1 260px', fontSize: '0.85rem', padding: '0.5rem 0.75rem' }}
+                          />
+                          <div style={{ display: 'flex', gap: '0.6rem' }}>
+                            <button
+                              type="button"
+                              className="btn btn-outline"
+                              disabled={isBusy}
+                              onClick={() => {
+                                setRejectingRequestId(req.id);
+                                setRejectHighlightId(null);
+                              }}
+                              style={{
+                                borderColor: 'var(--danger)',
+                                color: 'var(--danger)',
+                                fontWeight: 650,
+                              }}
+                            >
+                              ❌ Reprovar Solicitação
+                            </button>
+                            <button
+                              type="button"
+                              className="btn"
+                              disabled={isBusy}
+                              onClick={() => handleApproveRequest(req.id)}
+                              style={{ fontWeight: 650 }}
+                            >
+                              {isBusy ? 'Processando...' : '✅ Aprovar Solicitação'}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            padding: '1rem',
+                            borderRadius: '10px',
+                            backgroundColor: 'var(--danger-soft)',
+                            border: '1px solid var(--danger)',
+                          }}
+                        >
+                          <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 700, color: 'var(--danger)', marginBottom: '0.4rem' }}>
+                            Motivo / Justificativa da Reprovação (obrigatório — será exibido ao usuário solicitante):
+                          </label>
+                          <textarea
+                            rows={3}
+                            className="input"
+                            placeholder="Explique ao usuário o motivo da reprovação (ex.: Equipamento será utilizado na aula prática da turma de Engenharia na segunda semana)..."
+                            value={rejectReason}
+                            onChange={(e) => {
+                              setRejectReasonMap((prev) => ({ ...prev, [req.id]: e.target.value }));
+                              setRejectHighlightId(null);
+                            }}
+                            style={{
+                              marginBottom: '0.75rem',
+                              borderColor: isHighlighted ? 'var(--danger)' : undefined,
+                              boxShadow: isHighlighted
+                                ? '0 0 0 3px color-mix(in srgb, var(--danger), transparent 72%)'
+                                : undefined,
+                            }}
+                          />
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem' }}>
+                            <button
+                              type="button"
+                              className="btn btn-outline"
+                              disabled={isBusy}
+                              onClick={() => {
+                                setRejectingRequestId(null);
+                                setRejectHighlightId(null);
+                              }}
+                            >
+                              Voltar
+                            </button>
+                            <button
+                              type="button"
+                              className="btn"
+                              disabled={isBusy}
+                              onClick={() => handleRejectRequest(req.id)}
+                              style={{
+                                backgroundColor: 'var(--danger)',
+                                color: '#fff',
+                                fontWeight: 650,
+                              }}
+                            >
+                              {isBusy ? 'Enviando...' : 'Confirmar Reprovação e Notificar Usuário'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* Histórico de Solicitações já Analisadas */}
+          {decidedRequests.length > 0 && (
+            <section>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.75rem' }}>
+                Histórico de Solicitações de Prazo Maior Analisadas ({decidedRequests.length})
+              </h3>
+              <div style={{ display: 'grid', gap: '0.75rem' }}>
+                {decidedRequests.map((req) => {
+                  const approved = req.approval_status === 'APPROVED';
+                  return (
+                    <div
+                      key={req.id}
+                      className="card"
+                      style={{
+                        padding: '1rem 1.25rem',
+                        borderLeft: `4px solid ${approved ? 'var(--primary)' : 'var(--danger)'}`,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        flexWrap: 'wrap',
+                        gap: '1rem',
+                        fontSize: '0.86rem',
+                      }}
+                    >
+                      <div style={{ flex: '1 1 300px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                          <span className={approved ? 'badge' : 'badge badge-danger'}>
+                            {approved ? '✅ Aprovada' : '❌ Reprovada'}
+                          </span>
+                          <strong>{req.item.name}</strong>
+                          <span className="muted">({req.item.patrimony_code})</span>
+                        </div>
+                        <div className="muted">
+                          Usuário: <strong>{req.user.name}</strong> ({req.user.email}) · Período:{' '}
+                          {formatDateTimePt(req.expected_pickup_at)} até {formatDateTimePt(req.expected_return_at)} (
+                          <strong>{formatDurationSummary(req.expected_pickup_at, req.expected_return_at)}</strong>)
+                        </div>
+                        {req.request_reason && (
+                          <div style={{ marginTop: '0.3rem' }}>
+                            <span className="muted">Pedido do usuário:</span> "{req.request_reason}"
+                          </div>
+                        )}
+                        {req.admin_decision_reason && (
+                          <div style={{ marginTop: '0.2rem', fontWeight: 600, color: approved ? 'var(--primary)' : 'var(--danger)' }}>
+                            Resposta do Admin: "{req.admin_decision_reason}"
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+        </div>
+      )}
+
+      {/* ABA 3: EQUIPAMENTOS E CATEGORIAS */}
       {activeTab === 'equipamentos' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
           {/* Seção Equipamentos */}
@@ -648,6 +1152,7 @@ export const AdminDashboardPage: React.FC = () => {
                     <th style={{ padding: '0.75rem 1rem' }}>Nome</th>
                     <th style={{ padding: '0.75rem 1rem' }}>Patrimônio</th>
                     <th style={{ padding: '0.75rem 1rem' }}>Categoria</th>
+                    <th style={{ padding: '0.75rem 1rem' }}>Quantidade</th>
                     <th style={{ padding: '0.75rem 1rem' }}>Status</th>
                     <th style={{ padding: '0.75rem 1rem' }}>Ações</th>
                   </tr>
@@ -655,11 +1160,38 @@ export const AdminDashboardPage: React.FC = () => {
                 <tbody>
                   {filteredItems.map((it) => {
                     const activeMaint = it.maintenance && it.maintenance.length > 0 ? it.maintenance[0] : null;
+                    const currentQty = it.quantity ?? 1;
                     return (
                       <tr key={it.id} style={{ borderBottom: '1px solid var(--border)' }}>
                         <td style={{ padding: '0.75rem 1rem', fontWeight: 500 }}>{it.name}</td>
                         <td style={{ padding: '0.75rem 1rem' }}><code>{it.patrimony_code}</code></td>
                         <td style={{ padding: '0.75rem 1rem' }}>{it.category?.name || '-'}</td>
+                        <td style={{ padding: '0.75rem 1rem' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'var(--page)', padding: '0.2rem 0.35rem', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                            <button
+                              type="button"
+                              className="btn btn-outline"
+                              disabled={currentQty <= 1}
+                              onClick={() => handleUpdateItemQuantity(it.id, it.name, currentQty - 1)}
+                              title="Diminuir quantidade"
+                              style={{ padding: '0.1rem 0.45rem', fontSize: '0.85rem', lineHeight: 1.1, borderRadius: '6px' }}
+                            >
+                              −
+                            </button>
+                            <strong style={{ minWidth: '38px', textAlign: 'center', fontSize: '0.85rem', fontVariantNumeric: 'tabular-nums' }}>
+                              {currentQty} un.
+                            </strong>
+                            <button
+                              type="button"
+                              className="btn"
+                              onClick={() => handleUpdateItemQuantity(it.id, it.name, currentQty + 1)}
+                              title="Adicionar mais uma unidade deste equipamento"
+                              style={{ padding: '0.1rem 0.45rem', fontSize: '0.85rem', lineHeight: 1.1, borderRadius: '6px', fontWeight: 700 }}
+                            >
+                              +
+                            </button>
+                          </div>
+                        </td>
                         <td style={{ padding: '0.75rem 1rem' }}>
                           {activeMaint ? (
                             <span className="badge badge-warning">Em Manutenção</span>
@@ -773,19 +1305,19 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* ABA 3: REGRAS E GESTÃO DE USUÁRIOS */}
+      {/* ABA 4: REGRAS E GESTÃO DE USUÁRIOS */}
       {activeTab === 'regras_usuarios' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
           {/* Seção Regras Globais */}
           <section style={{ backgroundColor: 'var(--surface)', padding: '1.5rem', borderRadius: '8px', border: '1px solid var(--border)', boxShadow: 'var(--shadow)' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.25rem' }}>Regras Globais de Reserva (SystemSettings)</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.25rem' }}>Regras Globais e Tempo Limite de Reserva (SystemSettings)</h2>
             <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
-              Limites aplicados automaticamente a todos os usuários da plataforma no momento da reserva direta.
+              Defina o intervalo máximo padrão de reserva (que trava os dias disponíveis no calendário de devolução do usuário) e o limite de itens simultâneos.
             </p>
             <form onSubmit={handleSaveSettings} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', alignItems: 'flex-end' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>
-                  Dias Máximos por Reserva (max_rent_days):
+                  Tempo Limite Máximo por Reserva (dias):
                 </label>
                 <input
                   type="number"
@@ -879,7 +1411,7 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* ABA 4: HISTÓRICO GERAL */}
+      {/* ABA 5: HISTÓRICO GERAL */}
       {activeTab === 'historico' && (
         <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
