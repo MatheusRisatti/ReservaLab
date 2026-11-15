@@ -11,6 +11,8 @@ interface ItemCardProps {
 
 export const ItemCard: React.FC<ItemCardProps> = ({ item, canReserve, reserveHint, onReserve }) => {
   const available = item.is_available !== false;
+  const totalQty = item.quantity ?? 1;
+  const availableQty = item.available_quantity ?? (available ? totalQty : 0);
 
   return (
     <article className="card item-card">
@@ -23,10 +25,23 @@ export const ItemCard: React.FC<ItemCardProps> = ({ item, canReserve, reserveHin
       >
         <ItemIllustration item={item} />
       </div>
-      <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
         <span className={available ? 'badge' : 'badge badge-danger'}>
           {available ? 'Disponível' : 'Indisponível'}
         </span>
+        {totalQty > 1 && (
+          <span
+            className="badge"
+            style={{
+              backgroundColor: 'var(--page)',
+              color: 'var(--muted)',
+              fontWeight: 600,
+            }}
+            title={`${availableQty} de ${totalQty} unidades disponíveis neste período`}
+          >
+            {availableQty} de {totalQty} un.
+          </span>
+        )}
       </div>
       <h3 style={{ margin: 0 }}>{item.name}</h3>
       <p className="muted" style={{ fontSize: '0.85rem' }}>

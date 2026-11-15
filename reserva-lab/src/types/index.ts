@@ -7,6 +7,12 @@ export type ReservationStatus =
   | 'NO_SHOW'
   | 'CANCELLED';
 
+export type ApprovalStatus =
+  | 'NOT_REQUIRED'
+  | 'PENDING'
+  | 'APPROVED'
+  | 'REJECTED';
+
 export type UserStatus = 'LIBERADO' | 'BLOQUEADO' | 'LIMITE_ATINGIDO';
 
 export interface User {
@@ -29,6 +35,8 @@ export interface Item {
   id: string;
   name: string;
   patrimony_code: string;
+  quantity?: number;
+  available_quantity?: number;
   is_active: boolean;
   is_available?: boolean;
   category_id: string;
@@ -50,6 +58,10 @@ export interface Reservation {
   expected_pickup_at: string;
   expected_return_at: string;
   status: ReservationStatus;
+  approval_status?: ApprovalStatus;
+  request_reason?: string | null;
+  admin_decision_reason?: string | null;
+  decided_at?: string | null;
   item?: Item;
   loan?: Loan | null;
   created_at: string;

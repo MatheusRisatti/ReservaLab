@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { formatDurationSummary } from '../components/ReservationModal';
 import { useAuth } from '../contexts/useAuth';
 import { api } from '../services/api';
 import { getApiErrorMessage } from '../services/errors';
@@ -25,6 +26,19 @@ const STATUS_LABEL: Record<ReservationStatus, { text: string; badge: string }> =
   NO_SHOW: { text: 'Não compareceu', badge: 'badge badge-danger' },
   CANCELLED: { text: 'Cancelada', badge: 'badge badge-danger' },
 };
+
+function getReservationStatusBadge(reservation: Reservation): { text: string; badge: string } {
+  if (reservation.approval_status === 'REJECTED') {
+    return { text: 'Reprovada pelo Admin', badge: 'badge badge-danger' };
+  }
+  if (reservation.status === 'SCHEDULED' && reservation.approval_status === 'PENDING') {
+    return { text: 'Em análise (Prazo maior)', badge: 'badge badge-warning' };
+  }
+  if (reservation.status === 'SCHEDULED' && reservation.approval_status === 'APPROVED') {
+    return { text: 'Prazo maior aprovado · Agendada', badge: 'badge' };
+  }
+  return STATUS_LABEL[reservation.status];
+}
 
 function formatDateTime(value: string): string {
   return new Date(value).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
@@ -139,9 +153,15 @@ export const MyReservationsPage: React.FC = () => {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
           {visible.map((reservation) => {
-            const status = STATUS_LABEL[reservation.status];
+            const status = getReservationStatusBadge(reservation);
             const confirming = confirmingId === reservation.id;
             const canceling = cancelingId === reservation.id;
+            const hasExtensionInfo =
+              reservation.approval_status === 'PENDING' ||
+              reservation.approval_status === 'APPROVED' ||
+              reservation.approval_status === 'REJECTED' ||
+              !!reservation.request_reason;
+
             return (
               <article key={reservation.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <div>
@@ -157,6 +177,10 @@ export const MyReservationsPage: React.FC = () => {
                   <dd style={{ margin: 0 }}>{formatDateTime(reservation.expected_pickup_at)}</dd>
                   <dt className="muted">Devolução prevista</dt>
                   <dd style={{ margin: 0 }}>{formatDateTime(reservation.expected_return_at)}</dd>
+                  <dt className="muted">Tempo total</dt>
+                  <dd style={{ margin: 0, fontWeight: 600 }}>
+                    {formatDurationSummary(reservation.expected_pickup_at, reservation.expected_return_at)}
+                  </dd>
                   {reservation.loan?.actual_pickup_at && (
                     <>
                       <dt className="muted">Retirado em</dt>
@@ -170,6 +194,58 @@ export const MyReservationsPage: React.FC = () => {
                     </>
                   )}
                 </dl>
+
+                {hasExtensionInfo && (
+                  <div
+                    style={{
+                      padding: '0.6rem 0.75rem',
+                      borderRadius: '10px',
+                      backgroundColor:
+                        reservation.approval_status === 'REJECTED'
+                          ? 'var(--danger-soft)'
+                          : 'var(--soft)',
+                      border:
+                        reservation.approval_status === 'REJECTED'
+                          ? '1px solid var(--danger)'
+                          : '1px solid var(--border)',
+                      fontSize: '0.82rem',
+                      display: 'grid',
+                      gap: '0.3rem',
+                    }}
+                  >
+                    {reservation.request_reason && (
+                      <div>
+                        <strong className="muted">Sua justificativa:</strong> "{reservation.request_reason}"
+                      </div>
+                    )}
+                    {reservation.approval_status === 'PENDING' && (
+                      <div style={{ color: 'var(--warning)', fontWeight: 600 }}>
+                        ⏳ Aguardando análise do Administrador.
+                      </div>
+                    )}
+                    {reservation.approval_status === 'APPROVED' && (
+                      <div style={{ color: 'var(--primary)', fontWeight: 600 }}>
+                        ✅ Prazo maior aprovado pelo Administrador!
+                        {reservation.admin_decision_reason && (
+                          <div style={{ fontWeight: 500, color: 'var(--text)', marginTop: '0.15rem' }}>
+                            Observação: "{reservation.admin_decision_reason}"
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {reservation.approval_status === 'REJECTED' && (
+                      <div style={{ color: 'var(--danger)', fontWeight: 600 }}>
+                        ❌ Solicitação reprovada pelo Administrador.
+                        {reservation.admin_decision_reason && (
+                          <div style={{ marginTop: '0.15rem' }}>
+                            Motivo: "{reservation.admin_decision_reason}"
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {reservation.status === 'SCHEDULED' && (
                   <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
                     {confirming ? (
