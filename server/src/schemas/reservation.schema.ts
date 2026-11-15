@@ -11,6 +11,12 @@ const reservationBodySchema = z
       offset: true,
       message: 'Data de devolução inválida',
     }),
+    request_reason: z
+      .string()
+      .trim()
+      .min(5, 'A justificativa para prazo estendido deve ter pelo menos 5 caracteres')
+      .max(1000, 'A justificativa não pode ultrapassar 1000 caracteres')
+      .optional(),
   })
   .superRefine((data, context) => {
     const pickupDate = new Date(data.expected_pickup_at);

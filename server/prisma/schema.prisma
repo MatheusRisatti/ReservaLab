@@ -44,6 +44,7 @@ model Item {
   id             String              @id @default(uuid())
   name           String
   patrimony_code String              @unique
+  quantity       Int                 @default(1)
   is_active      Boolean             @default(true)
   category_id    String
   category       Category            @relation(fields: [category_id], references: [id])
@@ -53,18 +54,22 @@ model Item {
 }
 
 model Reservation {
-  id                 String            @id @default(uuid())
-  user_id            String
-  item_id            String
-  expected_pickup_at DateTime
-  expected_return_at DateTime
-  status             ReservationStatus @default(SCHEDULED)
+  id                    String            @id @default(uuid())
+  user_id               String
+  item_id               String
+  expected_pickup_at    DateTime
+  expected_return_at    DateTime
+  status                ReservationStatus @default(SCHEDULED)
+  approval_status       String            @default("NOT_REQUIRED")
+  request_reason        String?
+  admin_decision_reason String?
+  decided_at            DateTime?
 
-  user               User              @relation(fields: [user_id], references: [id])
-  item               Item              @relation(fields: [item_id], references: [id])
-  loan               Loan?
+  user                  User              @relation(fields: [user_id], references: [id])
+  item                  Item              @relation(fields: [item_id], references: [id])
+  loan                  Loan?
 
-  created_at         DateTime          @default(now())
+  created_at            DateTime          @default(now())
 }
 
 model Loan {

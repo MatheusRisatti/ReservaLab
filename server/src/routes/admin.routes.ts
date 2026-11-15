@@ -15,6 +15,7 @@ import {
   listAdminItems,
   createItem,
   updateItem,
+  updateItemQuantity,
   toggleItemStatus,
 } from '../controllers/admin/item.controller.js';
 
@@ -33,6 +34,8 @@ import {
   markNoShow,
   returnLoan,
   getLoansHistory,
+  listExtensionRequests,
+  reviewExtensionRequest,
 } from '../controllers/admin/loan.controller.js';
 
 import {
@@ -51,6 +54,7 @@ import {
   deleteCategorySchema,
   createItemSchema,
   updateItemSchema,
+  updateItemQuantitySchema,
   toggleItemStatusSchema,
   createMaintenanceSchema,
   concludeMaintenanceSchema,
@@ -59,6 +63,7 @@ import {
   returnLoanSchema,
   updateSettingsSchema,
   toggleUserBlockSchema,
+  reviewExtensionRequestSchema,
 } from '../schemas/admin.schema.js';
 
 export const adminRouter = Router();
@@ -76,6 +81,7 @@ adminRouter.delete('/categories/:id', validate(deleteCategorySchema), deleteCate
 adminRouter.get('/items', listAdminItems);
 adminRouter.post('/items', validate(createItemSchema), createItem);
 adminRouter.put('/items/:id', validate(updateItemSchema), updateItem);
+adminRouter.patch('/items/:id/quantity', validate(updateItemQuantitySchema), updateItemQuantity);
 adminRouter.patch('/items/:id/status', validate(toggleItemStatusSchema), toggleItemStatus);
 
 // Manutenção
@@ -88,6 +94,14 @@ adminRouter.post('/loans/pickup', validate(pickupLoanSchema), pickupLoan);
 adminRouter.patch('/reservations/:id/no-show', validate(noShowSchema), markNoShow);
 adminRouter.get('/dashboard/daily-returns', getDailyReturns);
 adminRouter.post('/loans/:id/return', validate(returnLoanSchema), returnLoan);
+
+// Análise de Pedidos de Prazo Maior
+adminRouter.get('/extension-requests', listExtensionRequests);
+adminRouter.patch(
+  '/extension-requests/:id/review',
+  validate(reviewExtensionRequestSchema),
+  reviewExtensionRequest
+);
 
 // Histórico Geral de Empréstimos
 adminRouter.get('/loans/history', getLoansHistory);

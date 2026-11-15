@@ -9,6 +9,9 @@ export async function getDailyPickups(_req: Request, res: Response): Promise<voi
   const pickups = await prisma.reservation.findMany({
     where: {
       status: ReservationStatus.SCHEDULED,
+      approval_status: {
+        not: 'PENDING',
+      },
       expected_pickup_at: {
         lte: endOfToday,
       },

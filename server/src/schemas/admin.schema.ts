@@ -28,6 +28,7 @@ export const createItemSchema = z.object({
     name: z.string({ required_error: 'O nome do equipamento é obrigatório' }).min(2, 'O nome deve ter no mínimo 2 caracteres'),
     patrimony_code: z.string({ required_error: 'O código de patrimônio é obrigatório' }).min(1, 'Código de patrimônio não pode ser vazio'),
     category_id: z.string({ required_error: 'A categoria é obrigatória' }).uuid('ID de categoria inválido'),
+    quantity: z.number().int('A quantidade deve ser um número inteiro').min(1, 'A quantidade mínima é 1').optional(),
   }),
 });
 
@@ -39,6 +40,19 @@ export const updateItemSchema = z.object({
     name: z.string().min(2, 'O nome deve ter no mínimo 2 caracteres').optional(),
     category_id: z.string().uuid('ID de categoria inválido').optional(),
     is_active: z.boolean().optional(),
+    quantity: z.number().int('A quantidade deve ser um número inteiro').min(1, 'A quantidade mínima é 1').optional(),
+  }),
+});
+
+export const updateItemQuantitySchema = z.object({
+  params: z.object({
+    id: z.string().uuid('ID de equipamento inválido'),
+  }),
+  body: z.object({
+    quantity: z
+      .number({ required_error: 'A quantidade é obrigatória' })
+      .int('A quantidade deve ser um número inteiro')
+      .min(1, 'A quantidade mínima permitida é 1 unidade'),
   }),
 });
 
@@ -100,4 +114,26 @@ export const toggleUserBlockSchema = z.object({
   params: z.object({
     id: z.string().uuid('ID de usuário inválido'),
   }),
+});
+
+export const reviewExtensionRequestSchema = z.object({
+  params: z.object({
+    id: z.string().uuid('ID da solicitação inválido'),
+  }),
+  body: z
+    .object({
+      action: z.enum(['APPROVE', 'REJECT'], {
+        required_error: 'A ação (APPROVE ou REJECT) é obrigatória',
+      }),
+      decision_reason: z.string().optional().nullable(),
+    })
+    .superRefine((data, ctx) => {
+      if (data.action === 'REJECT' && (!data.decision_reason || data.decision_reason.trim().length < 3)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['decision_reason'],
+          message: 'A justificativa é obrigatória ao reprovar uma solicitação (mínimo de 3 caracteres)',
+        });
+      }
+    }),
 });

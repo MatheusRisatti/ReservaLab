@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { ReservationStatus } from '@prisma/client';
 import { prisma } from '../../services/prisma.js';
 
 export async function listAdminItems(_req: Request, res: Response): Promise<void> {
@@ -16,7 +17,7 @@ export async function listAdminItems(_req: Request, res: Response): Promise<void
 }
 
 export async function createItem(req: Request, res: Response): Promise<void> {
-  const { name, patrimony_code, category_id } = req.body;
+  const { name, patrimony_code, category_id, quantity } = req.body;
 
   const categoryExists = await prisma.category.findUnique({
     where: { id: category_id },
@@ -42,6 +43,7 @@ export async function createItem(req: Request, res: Response): Promise<void> {
       patrimony_code,
       category_id,
       is_active: true,
+      ...(quantity !== undefined ? { quantity } : {}),
     },
     include: {
       category: true,
@@ -53,7 +55,7 @@ export async function createItem(req: Request, res: Response): Promise<void> {
 
 export async function updateItem(req: Request, res: Response): Promise<void> {
   const { id } = req.params;
-  const { name, category_id, is_active } = req.body;
+  const { name, category_id, is_active, quantity } = req.body;
 
   const item = await prisma.item.findUnique({
     where: { id },
@@ -80,7 +82,48 @@ export async function updateItem(req: Request, res: Response): Promise<void> {
       ...(name !== undefined && { name }),
       ...(category_id !== undefined && { category_id }),
       ...(is_active !== undefined && { is_active }),
+      ...(quantity !== undefined && { quantity }),
     },
+    include: {
+      category: true,
+    },
+  });
+
+  res.status(200).json({ item: updatedItem });
+}
+
+export async function updateItemQuantity(req: Request, res: Response): Promise<void> {
+  const { id } = req.params;
+  const { quantity } = req.body as { quantity: number };
+
+  const item = await prisma.item.findUnique({
+    where: { id },
+  });
+
+  if (!item) {
+    res.status(404).json({ error: 'Equipamento não encontrado' });
+    return;
+  }
+
+  if (quantity < (item.quantity ?? 1)) {
+    const activeLoansCount = await prisma.reservation.count({
+      where: {
+        item_id: id,
+        status: ReservationStatus.ACTIVE_LOAN,
+      },
+    });
+
+    if (quantity < activeLoansCount) {
+      res.status(400).json({
+        error: `Não é possível reduzir a quantidade para ${quantity} pois há ${activeLoansCount} unidade(s) atualmente emprestada(s)`,
+      });
+      return;
+    }
+  }
+
+  const updatedItem = await prisma.item.update({
+    where: { id },
+    data: { quantity },
     include: {
       category: true,
     },

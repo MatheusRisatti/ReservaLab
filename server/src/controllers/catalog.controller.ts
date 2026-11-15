@@ -52,6 +52,30 @@ export async function listCategories(
   }
 }
 
+export async function getPublicSettings(
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const settings = await prisma.systemSettings.findFirst({
+      select: {
+        max_rent_days: true,
+        max_concurrent_items: true,
+      },
+    });
+
+    res.status(200).json({
+      settings: {
+        max_rent_days: settings?.max_rent_days ?? 14,
+        max_concurrent_items: settings?.max_concurrent_items ?? 3,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function listItems(
   req: Request,
   res: Response,
@@ -104,10 +128,42 @@ export async function listItems(
       orderBy: { name: 'asc' },
     });
 
-    const items = catalogItems.map(({ reservations, maintenance, ...item }) => ({
-      ...item,
-      is_available: reservations.length === 0 && maintenance.length === 0,
-    }));
+    const items = await Promise.all(
+      catalogItems.map(async ({ reservations, maintenance, ...item }) => {
+        const totalQuantity = item.quantity ?? 1;
+
+        if (totalQuantity <= 1) {
+          const isAvailable = reservations.length === 0 && maintenance.length === 0;
+          return {
+            ...item,
+            ...(item.quantity !== undefined
+              ? { available_quantity: isAvailable ? 1 : 0 }
+              : {}),
+            is_available: isAvailable,
+          };
+        }
+
+        // Quando o equipamento possui mais de 1 unidade cadastrada, verifica quantas estão reservadas no período
+        let reservedCount = 0;
+        if (reservations.length > 0 && maintenance.length === 0) {
+          reservedCount = await prisma.reservation.count({
+            where: {
+              item_id: item.id,
+              ...reservationWhere,
+            },
+          });
+        }
+
+        const availableQuantity =
+          maintenance.length > 0 ? 0 : Math.max(0, totalQuantity - reservedCount);
+
+        return {
+          ...item,
+          available_quantity: availableQuantity,
+          is_available: availableQuantity > 0,
+        };
+      })
+    );
 
     res.status(200).json({ items });
   } catch (error) {

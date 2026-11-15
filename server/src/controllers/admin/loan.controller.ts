@@ -20,6 +20,11 @@ export async function pickupLoan(req: Request, res: Response): Promise<void> {
     return;
   }
 
+  if (reservation.approval_status === 'PENDING') {
+    res.status(400).json({ error: 'Esta reserva aguarda aprovação de prazo maior pelo administrador antes da retirada' });
+    return;
+  }
+
   if (reservation.loan) {
     res.status(400).json({ error: 'Esta reserva já possui um empréstimo associado' });
     return;
@@ -165,4 +170,92 @@ export async function getLoansHistory(req: Request, res: Response): Promise<void
   });
 
   res.status(200).json({ history: reservations });
+}
+
+export async function listExtensionRequests(_req: Request, res: Response): Promise<void> {
+  const requests = await prisma.reservation.findMany({
+    where: {
+      approval_status: {
+        in: ['PENDING', 'APPROVED', 'REJECTED'],
+      },
+    },
+    orderBy: { created_at: 'desc' },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          is_manually_blocked: true,
+        },
+      },
+      item: {
+        include: {
+          category: true,
+        },
+      },
+    },
+  });
+
+  // Ordena deixando as pendentes ("PENDING") no topo
+  const sorted = [...requests].sort((a, b) => {
+    if (a.approval_status === 'PENDING' && b.approval_status !== 'PENDING') return -1;
+    if (a.approval_status !== 'PENDING' && b.approval_status === 'PENDING') return 1;
+    return b.created_at.getTime() - a.created_at.getTime();
+  });
+
+  res.status(200).json({ requests: sorted });
+}
+
+export async function reviewExtensionRequest(req: Request, res: Response): Promise<void> {
+  const { id } = req.params;
+  const { action, decision_reason } = req.body as {
+    action: 'APPROVE' | 'REJECT';
+    decision_reason?: string | null;
+  };
+
+  const reservation = await prisma.reservation.findUnique({
+    where: { id },
+  });
+
+  if (!reservation) {
+    res.status(404).json({ error: 'Solicitação de reserva não encontrada' });
+    return;
+  }
+
+  if (reservation.approval_status !== 'PENDING') {
+    res.status(400).json({ error: 'Esta solicitação já foi analisada anteriormente' });
+    return;
+  }
+
+  const trimmedReason = decision_reason?.trim() || null;
+
+  const updatedReservation = await prisma.reservation.update({
+    where: { id },
+    data: {
+      approval_status: action === 'APPROVE' ? 'APPROVED' : 'REJECTED',
+      admin_decision_reason: trimmedReason,
+      decided_at: new Date(),
+      status: action === 'APPROVE' ? ReservationStatus.SCHEDULED : ReservationStatus.CANCELLED,
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          is_manually_blocked: true,
+        },
+      },
+      item: {
+        include: {
+          category: true,
+        },
+      },
+    },
+  });
+
+  res.status(200).json({ reservation: updatedReservation });
 }

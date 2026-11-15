@@ -12,6 +12,7 @@ type CreateReservationInput = {
   itemId: string;
   pickupDate: Date;
   returnDate: Date;
+  requestReason?: string;
 };
 
 const reservationDetailsInclude = {
@@ -24,13 +25,18 @@ const reservationDetailsInclude = {
 } satisfies Prisma.ReservationInclude;
 
 function isSerializationConflict(error: unknown): boolean {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    (error.code === 'P2034' || error.code === 'P2028')
+  ) {
+    return true;
+  }
+
   return (
-    error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034'
-  ) || (
     typeof error === 'object' &&
     error !== null &&
     'code' in error &&
-    error.code === 'P2034'
+    (error.code === 'P2034' || error.code === 'P2028')
   );
 }
 
@@ -72,18 +78,42 @@ async function createInsideTransaction(
     settings?.max_concurrent_items ?? DEFAULT_MAX_CONCURRENT_ITEMS;
   const requestedDays =
     (input.returnDate.getTime() - input.pickupDate.getTime()) / MILLISECONDS_PER_DAY;
+  const trimmedReason = input.requestReason?.trim();
+  const isExtendedRequest = requestedDays > maxRentDays;
 
-  if (requestedDays > maxRentDays) {
+  if (isExtendedRequest && !trimmedReason) {
     throw new AppError(`O período máximo de reserva é de ${maxRentDays} dias`, 400);
   }
 
-  const user = await transaction.user.findUnique({
-    where: { id: input.userId },
-    select: {
-      id: true,
-      is_manually_blocked: true,
-    },
-  });
+  const [user, overdueLoan, activeReservations, item] = await Promise.all([
+    transaction.user.findUnique({
+      where: { id: input.userId },
+      select: {
+        id: true,
+        is_manually_blocked: true,
+      },
+    }),
+    transaction.reservation.findFirst({
+      where: {
+        user_id: input.userId,
+        status: ReservationStatus.ACTIVE_LOAN,
+        expected_return_at: { lt: new Date() },
+      },
+      select: { id: true },
+    }),
+    transaction.reservation.count({
+      where: {
+        user_id: input.userId,
+        status: {
+          in: [ReservationStatus.SCHEDULED, ReservationStatus.ACTIVE_LOAN],
+        },
+      },
+    }),
+    transaction.item.findUnique({
+      where: { id: input.itemId },
+      select: { id: true, is_active: true, quantity: true },
+    }),
+  ]);
 
   if (!user) {
     throw new AppError('Usuário não encontrado', 404);
@@ -93,36 +123,13 @@ async function createInsideTransaction(
     throw new AppError('Usuário bloqueado para novas reservas', 403);
   }
 
-  const overdueLoan = await transaction.reservation.findFirst({
-    where: {
-      user_id: input.userId,
-      status: ReservationStatus.ACTIVE_LOAN,
-      expected_return_at: { lt: new Date() },
-    },
-    select: { id: true },
-  });
-
   if (overdueLoan) {
     throw new AppError('Usuário possui empréstimo em atraso', 403);
   }
 
-  const activeReservations = await transaction.reservation.count({
-    where: {
-      user_id: input.userId,
-      status: {
-        in: [ReservationStatus.SCHEDULED, ReservationStatus.ACTIVE_LOAN],
-      },
-    },
-  });
-
   if (activeReservations >= maxConcurrentItems) {
     throw new AppError('Limite de reservas ativas atingido', 400);
   }
-
-  const item = await transaction.item.findUnique({
-    where: { id: input.itemId },
-    select: { id: true, is_active: true },
-  });
 
   if (!item) {
     throw new AppError('Equipamento não encontrado', 404);
@@ -132,36 +139,64 @@ async function createInsideTransaction(
     throw new AppError('Equipamento inativo e indisponível para reserva', 409);
   }
 
-  const overlappingReservation = await transaction.reservation.findFirst({
-    where: {
-      item_id: input.itemId,
-      status: {
-        in: [ReservationStatus.SCHEDULED, ReservationStatus.ACTIVE_LOAN],
-      },
-      expected_pickup_at: { lt: input.returnDate },
-      expected_return_at: { gt: input.pickupDate },
+  const overlappingWhere = {
+    item_id: input.itemId,
+    status: {
+      in: [ReservationStatus.SCHEDULED, ReservationStatus.ACTIVE_LOAN],
     },
-    select: { id: true },
-  });
+    expected_pickup_at: { lt: input.returnDate },
+    expected_return_at: { gt: input.pickupDate },
+  };
+
+  const [overlappingReservation, overlappingMaintenance] = await Promise.all([
+    transaction.reservation.findFirst({
+      where: overlappingWhere,
+      select: { id: true },
+    }),
+    transaction.maintenanceRecord.findFirst({
+      where: {
+        item_id: input.itemId,
+        start_date: { lt: input.returnDate },
+        OR: [
+          { end_date: null },
+          { end_date: { gt: input.pickupDate } },
+        ],
+      },
+      select: { id: true },
+    }),
+  ]);
 
   if (overlappingReservation) {
-    throw new AppError('Equipamento já reservado no período informado', 409);
-  }
+    const itemQuantity = (item as { quantity?: number }).quantity ?? 1;
+    if (itemQuantity <= 1) {
+      throw new AppError('Equipamento já reservado no período informado', 409);
+    }
 
-  const overlappingMaintenance = await transaction.maintenanceRecord.findFirst({
-    where: {
-      item_id: input.itemId,
-      start_date: { lt: input.returnDate },
-      OR: [
-        { end_date: null },
-        { end_date: { gt: input.pickupDate } },
-      ],
-    },
-    select: { id: true },
-  });
+    const overlappingCount = await transaction.reservation.count({
+      where: overlappingWhere,
+    });
+
+    if (overlappingCount >= itemQuantity) {
+      throw new AppError('Equipamento já reservado no período informado', 409);
+    }
+  }
 
   if (overlappingMaintenance) {
     throw new AppError('Equipamento em manutenção no período informado', 409);
+  }
+
+  if (isExtendedRequest && trimmedReason) {
+    return transaction.reservation.create({
+      data: {
+        user_id: input.userId,
+        item_id: input.itemId,
+        expected_pickup_at: input.pickupDate,
+        expected_return_at: input.returnDate,
+        status: ReservationStatus.SCHEDULED,
+        approval_status: 'PENDING',
+        request_reason: trimmedReason,
+      },
+    });
   }
 
   return transaction.reservation.create({

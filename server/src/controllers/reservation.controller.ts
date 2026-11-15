@@ -21,6 +21,7 @@ export async function createReservation(
       itemId: req.body.item_id,
       pickupDate: new Date(req.body.expected_pickup_at),
       returnDate: new Date(req.body.expected_return_at),
+      requestReason: req.body.request_reason,
     });
 
     res.status(201).json({ reservation });
