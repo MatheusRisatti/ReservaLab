@@ -3,6 +3,7 @@ import { Role } from '@prisma/client';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { roleMiddleware } from '../middlewares/role.middleware.js';
 import { validate } from '../middlewares/validate.middleware.js';
+import { asyncHandler } from '../utils/async-handler.js';
 
 import {
   listAdminCategories,
@@ -64,6 +65,7 @@ import {
   updateSettingsSchema,
   toggleUserBlockSchema,
   reviewExtensionRequestSchema,
+  getLoansHistorySchema,
 } from '../schemas/admin.schema.js';
 
 export const adminRouter = Router();
@@ -72,44 +74,44 @@ export const adminRouter = Router();
 adminRouter.use(authMiddleware, roleMiddleware([Role.ADMIN]));
 
 // Categorias
-adminRouter.get('/categories', listAdminCategories);
-adminRouter.post('/categories', validate(createCategorySchema), createCategory);
-adminRouter.put('/categories/:id', validate(updateCategorySchema), updateCategory);
-adminRouter.delete('/categories/:id', validate(deleteCategorySchema), deleteCategory);
+adminRouter.get('/categories', asyncHandler(listAdminCategories));
+adminRouter.post('/categories', validate(createCategorySchema), asyncHandler(createCategory));
+adminRouter.put('/categories/:id', validate(updateCategorySchema), asyncHandler(updateCategory));
+adminRouter.delete('/categories/:id', validate(deleteCategorySchema), asyncHandler(deleteCategory));
 
 // Itens / Equipamentos
-adminRouter.get('/items', listAdminItems);
-adminRouter.post('/items', validate(createItemSchema), createItem);
-adminRouter.put('/items/:id', validate(updateItemSchema), updateItem);
-adminRouter.patch('/items/:id/quantity', validate(updateItemQuantitySchema), updateItemQuantity);
-adminRouter.patch('/items/:id/status', validate(toggleItemStatusSchema), toggleItemStatus);
+adminRouter.get('/items', asyncHandler(listAdminItems));
+adminRouter.post('/items', validate(createItemSchema), asyncHandler(createItem));
+adminRouter.put('/items/:id', validate(updateItemSchema), asyncHandler(updateItem));
+adminRouter.patch('/items/:id/quantity', validate(updateItemQuantitySchema), asyncHandler(updateItemQuantity));
+adminRouter.patch('/items/:id/status', validate(toggleItemStatusSchema), asyncHandler(toggleItemStatus));
 
 // Manutenção
-adminRouter.post('/items/:id/maintenance', validate(createMaintenanceSchema), createMaintenance);
-adminRouter.patch('/maintenance/:id/conclude', validate(concludeMaintenanceSchema), concludeMaintenance);
+adminRouter.post('/items/:id/maintenance', validate(createMaintenanceSchema), asyncHandler(createMaintenance));
+adminRouter.patch('/maintenance/:id/conclude', validate(concludeMaintenanceSchema), asyncHandler(concludeMaintenance));
 
 // Dashboard Operacional Diário
-adminRouter.get('/dashboard/daily-pickups', getDailyPickups);
-adminRouter.post('/loans/pickup', validate(pickupLoanSchema), pickupLoan);
-adminRouter.patch('/reservations/:id/no-show', validate(noShowSchema), markNoShow);
-adminRouter.get('/dashboard/daily-returns', getDailyReturns);
-adminRouter.post('/loans/:id/return', validate(returnLoanSchema), returnLoan);
+adminRouter.get('/dashboard/daily-pickups', asyncHandler(getDailyPickups));
+adminRouter.post('/loans/pickup', validate(pickupLoanSchema), asyncHandler(pickupLoan));
+adminRouter.patch('/reservations/:id/no-show', validate(noShowSchema), asyncHandler(markNoShow));
+adminRouter.get('/dashboard/daily-returns', asyncHandler(getDailyReturns));
+adminRouter.post('/loans/:id/return', validate(returnLoanSchema), asyncHandler(returnLoan));
 
 // Análise de Pedidos de Prazo Maior
-adminRouter.get('/extension-requests', listExtensionRequests);
+adminRouter.get('/extension-requests', asyncHandler(listExtensionRequests));
 adminRouter.patch(
   '/extension-requests/:id/review',
   validate(reviewExtensionRequestSchema),
-  reviewExtensionRequest
+  asyncHandler(reviewExtensionRequest)
 );
 
 // Histórico Geral de Empréstimos
-adminRouter.get('/loans/history', getLoansHistory);
+adminRouter.get('/loans/history', validate(getLoansHistorySchema), asyncHandler(getLoansHistory));
 
 // Configurações do Sistema (SystemSettings)
-adminRouter.get('/settings', getSettings);
-adminRouter.put('/settings', validate(updateSettingsSchema), updateSettings);
+adminRouter.get('/settings', asyncHandler(getSettings));
+adminRouter.put('/settings', validate(updateSettingsSchema), asyncHandler(updateSettings));
 
 // Gestão de Usuários
-adminRouter.get('/users', listAdminUsers);
-adminRouter.patch('/users/:id/toggle-block', validate(toggleUserBlockSchema), toggleUserBlock);
+adminRouter.get('/users', asyncHandler(listAdminUsers));
+adminRouter.patch('/users/:id/toggle-block', validate(toggleUserBlockSchema), asyncHandler(toggleUserBlock));

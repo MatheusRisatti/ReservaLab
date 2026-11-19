@@ -137,3 +137,18 @@ export const reviewExtensionRequestSchema = z.object({
       }
     }),
 });
+
+export const getLoansHistorySchema = z.object({
+  query: z.object({
+    status: z.preprocess(
+      (val) => (val === '' ? undefined : val),
+      z
+        .enum(['SCHEDULED', 'ACTIVE_LOAN', 'COMPLETED', 'NO_SHOW', 'CANCELLED'], {
+          errorMap: () => ({ message: 'Status de reserva inválido' }),
+        })
+        .optional()
+    ),
+    patrimony_code: z.string().trim().optional(),
+    user_email: z.string().trim().optional(),
+  }),
+});

@@ -10,8 +10,16 @@ import { adminRouter } from './routes/admin.routes.js';
 
 export const app = express();
 
-app.use(cors());
-app.use(express.json());
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
+  : [];
+
+app.use(
+  cors({
+    origin: corsOrigins.length > 0 ? corsOrigins : true,
+  })
+);
+app.use(express.json({ limit: '1mb' }));
 
 // Documentação Swagger/OpenAPI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));

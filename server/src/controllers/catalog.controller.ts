@@ -76,6 +76,8 @@ export async function getPublicSettings(
   }
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function listItems(
   req: Request,
   res: Response,
@@ -83,9 +85,15 @@ export async function listItems(
 ): Promise<void> {
   try {
     const period = parsePeriod(req);
-    const categoryId = typeof req.query.category_id === 'string'
-      ? req.query.category_id
+    const rawCategoryId = typeof req.query.category_id === 'string'
+      ? req.query.category_id.trim()
       : undefined;
+
+    if (rawCategoryId !== undefined && rawCategoryId !== '' && !UUID_REGEX.test(rawCategoryId)) {
+      throw new AppError('ID de categoria inválido', 400);
+    }
+
+    const categoryId = rawCategoryId && rawCategoryId !== '' ? rawCategoryId : undefined;
 
     const reservationWhere = period
       ? {
