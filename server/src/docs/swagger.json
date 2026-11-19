@@ -3,7 +3,7 @@
   "info": {
     "title": "ReservaLab API",
     "version": "1.0.0",
-    "description": "API REST para a plataforma ReservaLab - Sistema centralizado de reservas e controle de empréstimos acadêmicos/corporativos"
+    "description": "API REST para a plataforma ReservaLab — Sistema centralizado de reservas, solicitações de prazo estendido e controle de empréstimos de equipamentos."
   },
   "servers": [
     {
@@ -18,87 +18,406 @@
         "scheme": "bearer",
         "bearerFormat": "JWT"
       }
+    },
+    "schemas": {
+      "RegisterInput": {
+        "type": "object",
+        "required": ["name", "email", "password"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "example": "Gustavo Silva" },
+          "email": { "type": "string", "format": "email", "example": "gustavo@reservalab.com" },
+          "password": { "type": "string", "minLength": 6, "example": "123456" }
+        }
+      },
+      "LoginInput": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email", "example": "admin@reservalab.com" },
+          "password": { "type": "string", "example": "admin123" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "role": { "type": "string", "enum": ["ADMIN", "USER"] },
+          "is_manually_blocked": { "type": "boolean" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Category": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string", "example": "Notebooks" },
+          "description": { "type": "string", "nullable": true }
+        }
+      },
+      "CategoryInput": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 2, "example": "Projetores" },
+          "description": { "type": "string", "nullable": true, "example": "Projetores multimídia de sala" }
+        }
+      },
+      "Item": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string", "example": "MacBook Air M2 13\"" },
+          "patrimony_code": { "type": "string", "example": "PAT-00102" },
+          "quantity": { "type": "integer", "minimum": 1, "example": 2 },
+          "available_quantity": { "type": "integer", "minimum": 0, "example": 1 },
+          "is_available": { "type": "boolean" },
+          "is_active": { "type": "boolean" },
+          "category_id": { "type": "string", "format": "uuid" },
+          "category": { "$ref": "#/components/schemas/Category" }
+        }
+      },
+      "CreateItemInput": {
+        "type": "object",
+        "required": ["name", "patrimony_code", "category_id"],
+        "properties": {
+          "name": { "type": "string", "minLength": 2, "example": "Dell Latitude 3420" },
+          "patrimony_code": { "type": "string", "example": "PAT-00105" },
+          "category_id": { "type": "string", "format": "uuid" },
+          "quantity": { "type": "integer", "minimum": 1, "default": 1 }
+        }
+      },
+      "UpdateItemInput": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 2 },
+          "category_id": { "type": "string", "format": "uuid" },
+          "is_active": { "type": "boolean" },
+          "quantity": { "type": "integer", "minimum": 1 }
+        }
+      },
+      "UpdateItemQuantityInput": {
+        "type": "object",
+        "required": ["quantity"],
+        "properties": {
+          "quantity": { "type": "integer", "minimum": 1, "example": 2 }
+        }
+      },
+      "ToggleItemStatusInput": {
+        "type": "object",
+        "required": ["is_active"],
+        "properties": {
+          "is_active": { "type": "boolean", "example": false }
+        }
+      },
+      "CreateReservationInput": {
+        "type": "object",
+        "required": ["item_id", "expected_pickup_at", "expected_return_at"],
+        "properties": {
+          "item_id": { "type": "string", "format": "uuid" },
+          "expected_pickup_at": { "type": "string", "format": "date-time", "example": "2026-12-01T09:00:00.000Z" },
+          "expected_return_at": { "type": "string", "format": "date-time", "example": "2026-12-05T18:00:00.000Z" },
+          "request_reason": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 1000,
+            "description": "Obrigatório apenas quando o período ultrapassa max_rent_days",
+            "example": "Experimento contínuo de laboratório com duração de 20 dias."
+          }
+        }
+      },
+      "Reservation": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "user_id": { "type": "string", "format": "uuid" },
+          "item_id": { "type": "string", "format": "uuid" },
+          "expected_pickup_at": { "type": "string", "format": "date-time" },
+          "expected_return_at": { "type": "string", "format": "date-time" },
+          "status": {
+            "type": "string",
+            "enum": ["SCHEDULED", "ACTIVE_LOAN", "COMPLETED", "NO_SHOW", "CANCELLED"]
+          },
+          "approval_status": {
+            "type": "string",
+            "enum": ["NOT_REQUIRED", "PENDING", "APPROVED", "REJECTED"]
+          },
+          "request_reason": { "type": "string", "nullable": true },
+          "admin_decision_reason": { "type": "string", "nullable": true },
+          "decided_at": { "type": "string", "format": "date-time", "nullable": true },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ReviewExtensionRequestInput": {
+        "type": "object",
+        "required": ["action"],
+        "properties": {
+          "action": { "type": "string", "enum": ["APPROVE", "REJECT"] },
+          "decision_reason": {
+            "type": "string",
+            "nullable": true,
+            "description": "Obrigatório (mín. 3 caracteres) quando action = REJECT"
+          }
+        }
+      },
+      "MaintenanceInput": {
+        "type": "object",
+        "required": ["description"],
+        "properties": {
+          "description": { "type": "string", "minLength": 3, "example": "Troca de bateria e revisão preventiva" },
+          "start_date": { "type": "string", "format": "date-time" },
+          "end_date": { "type": "string", "format": "date-time", "nullable": true }
+        }
+      },
+      "PickupLoanInput": {
+        "type": "object",
+        "required": ["reservation_id"],
+        "properties": {
+          "reservation_id": { "type": "string", "format": "uuid" }
+        }
+      },
+      "ReturnLoanInput": {
+        "type": "object",
+        "properties": {
+          "return_observation": {
+            "type": "string",
+            "nullable": true,
+            "example": "Equipamento devolvido em perfeito estado com carregador."
+          }
+        }
+      },
+      "SystemSettings": {
+        "type": "object",
+        "required": ["max_rent_days", "max_concurrent_items"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "max_rent_days": { "type": "integer", "minimum": 1, "example": 14 },
+          "max_concurrent_items": { "type": "integer", "minimum": 1, "example": 3 },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string", "example": "Mensagem descritiva do erro" },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": { "type": "string" },
+                "message": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "paths": {
     "/health": {
       "get": {
         "summary": "Healthcheck da API",
-        "responses": { "200": { "description": "API operando normalmente" } }
+        "responses": {
+          "200": { "description": "API operando normalmente" }
+        }
       }
     },
     "/api/auth/register": {
       "post": {
         "tags": ["Autenticação"],
-        "summary": "Cadastro de novo usuário",
-        "responses": { "201": { "description": "Usuário cadastrado com sucesso" }, "409": { "description": "E-mail já cadastrado" } }
+        "summary": "Cadastro de novo usuário comum (perfil USER)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Usuário cadastrado com sucesso (sem password_hash)" },
+          "400": {
+            "description": "Dados inválidos na requisição",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          },
+          "409": {
+            "description": "E-mail já cadastrado",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } }
+          }
+        }
       }
     },
     "/api/auth/login": {
       "post": {
         "tags": ["Autenticação"],
-        "summary": "Login de usuário",
-        "responses": { "200": { "description": "Token JWT gerado" }, "401": { "description": "Credenciais inválidas" } }
+        "summary": "Autenticação de usuário e emissão de token JWT",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Token JWT e dados públicos do usuário" },
+          "400": { "description": "Dados inválidos" },
+          "401": { "description": "E-mail ou senha inválidos" }
+        }
       }
     },
     "/api/auth/me": {
       "get": {
         "tags": ["Autenticação"],
-        "summary": "Perfil do usuário logado e cálculo do status dinâmico",
+        "summary": "Perfil do usuário autenticado e status dinâmico calculado",
+        "description": "Retorna { user, status }, onde status pode ser AVAILABLE, BLOCKED ou LIMIT_REACHED.",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Dados do usuário com dynamic_status" } }
+        "responses": {
+          "200": { "description": "Objeto contendo user e status (AVAILABLE | BLOCKED | LIMIT_REACHED)" },
+          "401": { "description": "Token não fornecido ou inválido" },
+          "404": { "description": "Usuário não encontrado" }
+        }
       }
     },
     "/api/categories": {
       "get": {
         "tags": ["Catálogo"],
-        "summary": "Listar categorias ativas",
-        "responses": { "200": { "description": "Lista de categorias" } }
+        "summary": "Listar categorias cadastradas",
+        "responses": {
+          "200": { "description": "Lista de categorias ordenada por nome" }
+        }
       }
     },
     "/api/items": {
       "get": {
         "tags": ["Catálogo"],
-        "summary": "Listar equipamentos ativos com filtro de período e disponibilidade",
-        "responses": { "200": { "description": "Lista de itens com status de disponibilidade" } }
+        "summary": "Listar equipamentos ativos com filtro por categoria/período e quantidade disponível",
+        "parameters": [
+          {
+            "name": "category_id",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "Filtra equipamentos pelo ID da categoria"
+          },
+          {
+            "name": "pickup_date",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "format": "date-time" },
+            "description": "Data/hora inicial do período desejado (exige return_date junto)"
+          },
+          {
+            "name": "return_date",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "format": "date-time" },
+            "description": "Data/hora final do período desejado (posterior a pickup_date)"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Lista de equipamentos ativos com is_available e available_quantity" },
+          "400": { "description": "Período inválido/incompleto ou category_id inválido" }
+        }
+      }
+    },
+    "/api/settings": {
+      "get": {
+        "tags": ["Catálogo"],
+        "summary": "Consultar parâmetros públicos vigentes (prazo máximo e limite simultâneo)",
+        "responses": {
+          "200": { "description": "Parâmetros globais max_rent_days e max_concurrent_items" }
+        }
       }
     },
     "/api/reservations": {
       "post": {
         "tags": ["Reservas"],
-        "summary": "Criar reserva direta (sem aprovação manual)",
+        "summary": "Criar reserva direta ou solicitar prazo estendido",
+        "description": "Para períodos até max_rent_days cria reserva direta (approval_status=NOT_REQUIRED). Acima de max_rent_days exige request_reason e registra approval_status=PENDING com bloqueio preventivo.",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "201": { "description": "Reserva agendada" }, "409": { "description": "Conflito de agenda" } }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateReservationInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Reserva agendada ou enviada para análise" },
+          "400": { "description": "Datas inválidas, limite simultâneo atingido ou prazo excedido sem justificativa" },
+          "401": { "description": "Não autenticado" },
+          "403": { "description": "Usuário bloqueado manualmente ou com devolução em atraso" },
+          "404": { "description": "Equipamento ou usuário não encontrado" },
+          "409": { "description": "Conflito de agenda, equipamento inativo ou em manutenção" }
+        }
       }
     },
     "/api/reservations/my-reservations": {
       "get": {
         "tags": ["Reservas"],
-        "summary": "Histórico de reservas do próprio usuário",
+        "summary": "Histórico de reservas do próprio usuário autenticado",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Lista de reservas próprias" } }
+        "responses": {
+          "200": { "description": "Lista de reservas do usuário incluindo item, categoria, empréstimo e decisão de prazo" },
+          "401": { "description": "Não autenticado" }
+        }
       }
     },
     "/api/reservations/{id}/cancel": {
       "patch": {
         "tags": ["Reservas"],
-        "summary": "Cancelar reserva própria agendada",
+        "summary": "Cancelar reserva própria ainda agendada",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Reserva cancelada" } }
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Reserva cancelada (status CANCELLED)" },
+          "400": { "description": "ID inválido ou reserva já retirada/finalizada" },
+          "401": { "description": "Não autenticado" },
+          "404": { "description": "Reserva não encontrada ou pertencente a outro usuário" }
+        }
       }
     },
     "/api/admin/categories": {
       "get": {
         "tags": ["Admin - Categorias"],
-        "summary": "Listar categorias com contagem de itens",
+        "summary": "Listar categorias com contagem de equipamentos vinculados",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Lista de categorias" } }
+        "responses": {
+          "200": { "description": "Lista de categorias" },
+          "401": { "description": "Não autenticado" },
+          "403": { "description": "Acesso restrito a ADMIN" }
+        }
       },
       "post": {
         "tags": ["Admin - Categorias"],
         "summary": "Criar categoria",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "201": { "description": "Categoria criada" } }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CategoryInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Categoria criada" },
+          "400": { "description": "Dados inválidos" },
+          "401": { "description": "Não autenticado" },
+          "403": { "description": "Acesso restrito a ADMIN" },
+          "409": { "description": "Nome da categoria já cadastrado" }
+        }
       }
     },
     "/api/admin/categories/{id}": {
@@ -106,43 +425,132 @@
         "tags": ["Admin - Categorias"],
         "summary": "Atualizar categoria",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Categoria atualizada" } }
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CategoryInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Categoria atualizada" },
+          "400": { "description": "Dados inválidos" },
+          "404": { "description": "Categoria não encontrada" },
+          "409": { "description": "Nome já utilizado por outra categoria" }
+        }
       },
       "delete": {
         "tags": ["Admin - Categorias"],
-        "summary": "Excluir categoria",
+        "summary": "Excluir categoria sem equipamentos vinculados",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Categoria removida" }, "400": { "description": "Categoria possui itens vinculados" } }
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Categoria removida com sucesso" },
+          "400": { "description": "Categoria possui equipamentos vinculados" },
+          "404": { "description": "Categoria não encontrada" }
+        }
       }
     },
     "/api/admin/items": {
       "get": {
         "tags": ["Admin - Equipamentos"],
-        "summary": "Listar todos os equipamentos e manutenções",
+        "summary": "Listar todos os equipamentos e manutenções em aberto",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Lista de equipamentos" } }
+        "responses": {
+          "200": { "description": "Lista completa de equipamentos" }
+        }
       },
       "post": {
         "tags": ["Admin - Equipamentos"],
-        "summary": "Cadastrar equipamento com patrimônio único",
+        "summary": "Cadastrar equipamento com patrimônio único e quantidade inicial",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "201": { "description": "Equipamento cadastrado" }, "409": { "description": "Patrimônio duplicado" } }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateItemInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Equipamento cadastrado" },
+          "400": { "description": "Dados inválidos" },
+          "404": { "description": "Categoria informada não encontrada" },
+          "409": { "description": "Código de patrimônio duplicado" }
+        }
       }
     },
     "/api/admin/items/{id}": {
       "put": {
         "tags": ["Admin - Equipamentos"],
-        "summary": "Atualizar dados do equipamento",
+        "summary": "Atualizar dados cadastrais do equipamento",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Equipamento atualizado" } }
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateItemInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Equipamento atualizado" },
+          "404": { "description": "Equipamento ou categoria não encontrado" }
+        }
+      }
+    },
+    "/api/admin/items/{id}/quantity": {
+      "patch": {
+        "tags": ["Admin - Equipamentos"],
+        "summary": "Atualizar quantidade total de unidades do equipamento",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateItemQuantityInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Quantidade atualizada com sucesso" },
+          "400": { "description": "Quantidade menor que 1 ou menor que empréstimos ativos" },
+          "404": { "description": "Equipamento não encontrado" }
+        }
       }
     },
     "/api/admin/items/{id}/status": {
       "patch": {
         "tags": ["Admin - Equipamentos"],
-        "summary": "Alternar status ativo/inativo",
+        "summary": "Alternar status ativo/inativo do equipamento",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Status alterado" } }
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ToggleItemStatusInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Status alterado" },
+          "404": { "description": "Equipamento não encontrado" }
+        }
       }
     },
     "/api/admin/items/{id}/maintenance": {
@@ -150,55 +558,189 @@
         "tags": ["Admin - Manutenção"],
         "summary": "Enviar equipamento para manutenção",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "201": { "description": "Manutenção registrada" }, "400": { "description": "Item possui empréstimo ativo" } }
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MaintenanceInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Manutenção registrada" },
+          "400": { "description": "Equipamento possui empréstimo ativo em andamento" },
+          "404": { "description": "Equipamento não encontrado" }
+        }
       }
     },
     "/api/admin/maintenance/{id}/conclude": {
       "patch": {
         "tags": ["Admin - Manutenção"],
-        "summary": "Concluir manutenção de equipamento",
+        "summary": "Concluir manutenção em aberto",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Manutenção finalizada" } }
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Manutenção finalizada" },
+          "400": { "description": "Manutenção já finalizada anteriormente" },
+          "404": { "description": "Registro de manutenção não encontrado" }
+        }
       }
     },
     "/api/admin/dashboard/daily-pickups": {
       "get": {
         "tags": ["Admin - Painel Operacional"],
-        "summary": "Listar retiradas previstas do dia",
+        "summary": "Listar retiradas agendadas para hoje (ou em atraso) já liberadas para retirada",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Lista de retiradas agendadas" } }
+        "responses": {
+          "200": { "description": "Lista de retiradas agendadas" }
+        }
       }
     },
     "/api/admin/loans/pickup": {
       "post": {
         "tags": ["Admin - Painel Operacional"],
-        "summary": "Confirmar retirada física (criação de Loan)",
+        "summary": "Confirmar retirada física (cria Loan e altera reserva para ACTIVE_LOAN)",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "201": { "description": "Empréstimo ativado" } }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PickupLoanInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Empréstimo ativado com sucesso" },
+          "400": { "description": "Reserva não agendada, já retirada ou aguardando aprovação de prazo" },
+          "404": { "description": "Reserva não encontrada" }
+        }
       }
     },
     "/api/admin/reservations/{id}/no-show": {
       "patch": {
         "tags": ["Admin - Painel Operacional"],
-        "summary": "Registrar não comparecimento do solicitante",
+        "summary": "Registrar não comparecimento (NO_SHOW) do solicitante",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Status alterado para NO_SHOW" } }
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Status atualizado para NO_SHOW" },
+          "400": { "description": "Apenas reservas agendadas podem receber NO_SHOW" },
+          "404": { "description": "Reserva não encontrada" }
+        }
       }
     },
     "/api/admin/dashboard/daily-returns": {
       "get": {
         "tags": ["Admin - Painel Operacional"],
-        "summary": "Listar devoluções do dia e empréstimos ativos",
+        "summary": "Listar empréstimos ativos pendentes de devolução",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Lista de devoluções pendentes" } }
+        "responses": {
+          "200": { "description": "Lista de devoluções pendentes" }
+        }
       }
     },
     "/api/admin/loans/{id}/return": {
       "post": {
         "tags": ["Admin - Painel Operacional"],
-        "summary": "Registrar devolução de empréstimo com observação de avaria",
+        "summary": "Registrar devolução física do equipamento e observação de estado/avaria",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Devolução concluída e status COMPLETED" } }
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" },
+            "description": "ID do Loan ou da Reservation associada"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReturnLoanInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Devolução concluída e status atualizado para COMPLETED" },
+          "400": { "description": "Empréstimo já finalizado anteriormente" },
+          "404": { "description": "Registro de empréstimo não encontrado" }
+        }
+      }
+    },
+    "/api/admin/extension-requests": {
+      "get": {
+        "tags": ["Admin - Análise de Prazo"],
+        "summary": "Listar solicitações de prazo estendido (pendentes primeiro e histórico analisado)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Lista de solicitações com dados do usuário, equipamento e justificativa" }
+        }
+      }
+    },
+    "/api/admin/extension-requests/{id}/review": {
+      "patch": {
+        "tags": ["Admin - Análise de Prazo"],
+        "summary": "Aprovar ou reprovar solicitação de prazo estendido",
+        "description": "APPROVE mantém a reserva SCHEDULED e marca APPROVED. REJECT exige decision_reason (mín. 3 chars), marca REJECTED e cancela a reserva liberando o equipamento.",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ReviewExtensionRequestInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Decisão registrada e retornada na reserva" },
+          "400": { "description": "Solicitação já analisada ou reprovação sem justificativa" },
+          "404": { "description": "Solicitação não encontrada" }
+        }
+      }
+    },
+    "/api/admin/loans/history": {
+      "get": {
+        "tags": ["Admin - Histórico"],
+        "summary": "Histórico geral consolidado de reservas e empréstimos com filtros",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["SCHEDULED", "ACTIVE_LOAN", "COMPLETED", "NO_SHOW", "CANCELLED"]
+            }
+          },
+          {
+            "name": "patrimony_code",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "user_email",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Histórico filtrado" },
+          "400": { "description": "Filtro de status inválido" }
+        }
       }
     },
     "/api/admin/settings": {
@@ -206,37 +748,58 @@
         "tags": ["Admin - Regras"],
         "summary": "Consultar parâmetros globais do sistema",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Configurações atuais" } }
+        "responses": {
+          "200": { "description": "Configurações atuais de max_rent_days e max_concurrent_items" }
+        }
       },
       "put": {
         "tags": ["Admin - Regras"],
         "summary": "Atualizar max_rent_days e max_concurrent_items",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Configurações atualizadas" } }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["max_rent_days", "max_concurrent_items"],
+                "properties": {
+                  "max_rent_days": { "type": "integer", "minimum": 1, "example": 14 },
+                  "max_concurrent_items": { "type": "integer", "minimum": 1, "example": 3 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Configurações atualizadas" },
+          "400": { "description": "Valores inválidos (exige inteiros positivos)" }
+        }
       }
     },
     "/api/admin/users": {
       "get": {
         "tags": ["Admin - Usuários"],
-        "summary": "Listar usuários com cálculo de status dinâmico",
+        "summary": "Listar usuários com cálculo do status dinâmico e contagem de reservas ativas",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Lista de usuários com status" } }
+        "responses": {
+          "200": { "description": "Lista de usuários com dynamic_status e status_reason" }
+        }
       }
     },
     "/api/admin/users/{id}/toggle-block": {
       "patch": {
         "tags": ["Admin - Usuários"],
-        "summary": "Alternar bloqueio manual do usuário",
+        "summary": "Alternar bloqueio manual de um usuário",
         "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Status de bloqueio atualizado" } }
-      }
-    },
-    "/api/admin/loans/history": {
-      "get": {
-        "tags": ["Admin - Histórico"],
-        "summary": "Histórico geral consolidado de empréstimos e devoluções",
-        "security": [{ "bearerAuth": [] }],
-        "responses": { "200": { "description": "Histórico completo" } }
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }
+        ],
+        "responses": {
+          "200": { "description": "Status de bloqueio atualizado" },
+          "400": { "description": "Administrador não pode bloquear a própria conta" },
+          "404": { "description": "Usuário não encontrado" }
+        }
       }
     }
   }
