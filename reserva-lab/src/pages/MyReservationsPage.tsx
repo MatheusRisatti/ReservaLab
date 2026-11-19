@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { formatDurationSummary } from '../components/ReservationModal';
+import { formatDurationSummary } from '../utils/dateFormat';
 import { useAuth } from '../contexts/useAuth';
 import { api } from '../services/api';
 import { getApiErrorMessage } from '../services/errors';

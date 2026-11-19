@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { formatDurationSummary } from '../../components/ReservationModal';
+import { formatDurationSummary } from '../../utils/dateFormat';
 import { api } from '../../services/api';
+import { getApiErrorMessage } from '../../services/errors';
 
 type Tab = 'operacional' | 'analise_pedidos' | 'equipamentos' | 'regras_usuarios' | 'historico';
 
@@ -142,8 +143,8 @@ export const AdminDashboardPage: React.FC = () => {
       ]);
       setPickups(pickupsRes.data.pickups || []);
       setReturns(returnsRes.data.returns || []);
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao carregar dados operacionais', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao carregar dados operacionais'), 'error');
     }
   }, []);
 
@@ -151,8 +152,8 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       const res = await api.get('/api/admin/extension-requests');
       setExtensionRequests(res.data.requests || []);
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao carregar solicitações de prazo maior', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao carregar solicitações de prazo maior'), 'error');
     }
   }, []);
 
@@ -167,8 +168,8 @@ export const AdminDashboardPage: React.FC = () => {
       if (catsRes.data.categories?.length > 0) {
         setNewItemCategory((prev) => prev || catsRes.data.categories[0].id);
       }
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao carregar equipamentos', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao carregar equipamentos'), 'error');
     }
   }, []);
 
@@ -182,8 +183,8 @@ export const AdminDashboardPage: React.FC = () => {
         setSettings(settingsRes.data.settings);
       }
       setUsers(usersRes.data.users || []);
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao carregar regras e usuários', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao carregar regras e usuários'), 'error');
     }
   }, []);
 
@@ -191,8 +192,8 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       const res = await api.get('/api/admin/loans/history');
       setHistory(res.data.history || []);
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao carregar histórico geral', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao carregar histórico geral'), 'error');
     }
   }, []);
 
@@ -210,8 +211,26 @@ export const AdminDashboardPage: React.FC = () => {
   }, [loadOperacional, loadExtensionRequests, loadEquipamentos, loadRegrasEUsuarios, loadHistorico]);
 
   useEffect(() => {
-    refreshAllData();
-  }, [refreshAllData]);
+    let active = true;
+    void Promise.resolve()
+      .then(() =>
+        Promise.allSettled([
+          loadOperacional(),
+          loadExtensionRequests(),
+          loadEquipamentos(),
+          loadRegrasEUsuarios(),
+          loadHistorico(),
+        ])
+      )
+      .then(() => {
+        if (active) {
+          setInitialLoaded(true);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [loadOperacional, loadExtensionRequests, loadEquipamentos, loadRegrasEUsuarios, loadHistorico]);
 
   // Ações Operacionais
   const handleConfirmPickup = async (reservationId: string) => {
@@ -220,8 +239,8 @@ export const AdminDashboardPage: React.FC = () => {
       showFeedback('Retirada confirmada com sucesso! Empréstimo ativo.', 'success');
       loadOperacional();
       loadHistorico();
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Falha ao confirmar retirada', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Falha ao confirmar retirada'), 'error');
     }
   };
 
@@ -232,8 +251,8 @@ export const AdminDashboardPage: React.FC = () => {
       showFeedback('Reserva marcada como não comparecimento.', 'success');
       loadOperacional();
       loadHistorico();
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Falha ao registrar não comparecimento', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Falha ao registrar não comparecimento'), 'error');
     }
   };
 
@@ -248,8 +267,8 @@ export const AdminDashboardPage: React.FC = () => {
       setReturnObservation('');
       loadOperacional();
       loadHistorico();
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Falha ao registrar devolução', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Falha ao registrar devolução'), 'error');
     }
   };
 
@@ -265,8 +284,8 @@ export const AdminDashboardPage: React.FC = () => {
       showFeedback('Solicitação de prazo maior APROVADA! O usuário solicitante já pode visualizar o resultado.', 'success');
       setRejectingRequestId(null);
       await Promise.all([loadExtensionRequests(), loadOperacional(), loadHistorico()]);
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao aprovar solicitação', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao aprovar solicitação'), 'error');
     } finally {
       setReviewingId(null);
     }
@@ -290,8 +309,8 @@ export const AdminDashboardPage: React.FC = () => {
       setRejectingRequestId(null);
       setRejectHighlightId(null);
       await Promise.all([loadExtensionRequests(), loadOperacional(), loadHistorico(), loadRegrasEUsuarios()]);
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao reprovar solicitação', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao reprovar solicitação'), 'error');
     } finally {
       setReviewingId(null);
     }
@@ -306,8 +325,8 @@ export const AdminDashboardPage: React.FC = () => {
         prev.map((it) => (it.id === itemId ? { ...it, quantity: nextQuantity } : it))
       );
       showFeedback(`Quantidade de "${itemName}" atualizada para ${nextQuantity} unidade(s)!`, 'success');
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao alterar quantidade do equipamento', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao alterar quantidade do equipamento'), 'error');
     }
   };
 
@@ -316,8 +335,8 @@ export const AdminDashboardPage: React.FC = () => {
       await api.patch(`/api/admin/items/${itemId}/status`, { is_active: !currentStatus });
       showFeedback(`Equipamento ${!currentStatus ? 'ativado' : 'desativado'} com sucesso!`, 'success');
       loadEquipamentos();
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao alterar status', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao alterar status'), 'error');
     }
   };
 
@@ -334,8 +353,8 @@ export const AdminDashboardPage: React.FC = () => {
       setNewItemName('');
       setNewItemPatrimony('');
       loadEquipamentos();
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao cadastrar equipamento', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao cadastrar equipamento'), 'error');
     }
   };
 
@@ -350,8 +369,8 @@ export const AdminDashboardPage: React.FC = () => {
       showFeedback('Equipamento atualizado com sucesso!', 'success');
       setEditItemModal(null);
       loadEquipamentos();
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao atualizar equipamento', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao atualizar equipamento'), 'error');
     }
   };
 
@@ -367,8 +386,8 @@ export const AdminDashboardPage: React.FC = () => {
       setNewCatName('');
       setNewCatDesc('');
       loadEquipamentos();
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao cadastrar categoria', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao cadastrar categoria'), 'error');
     }
   };
 
@@ -383,8 +402,8 @@ export const AdminDashboardPage: React.FC = () => {
       showFeedback('Categoria atualizada com sucesso!', 'success');
       setEditCatModal(null);
       loadEquipamentos();
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao atualizar categoria', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao atualizar categoria'), 'error');
     }
   };
 
@@ -394,8 +413,8 @@ export const AdminDashboardPage: React.FC = () => {
       await api.delete(`/api/admin/categories/${catId}`);
       showFeedback('Categoria removida com sucesso!', 'success');
       loadEquipamentos();
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao remover categoria', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao remover categoria'), 'error');
     }
   };
 
@@ -410,8 +429,8 @@ export const AdminDashboardPage: React.FC = () => {
       setMaintenanceModal(null);
       setMaintenanceDesc('');
       loadEquipamentos();
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao registrar manutenção', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao registrar manutenção'), 'error');
     }
   };
 
@@ -420,8 +439,8 @@ export const AdminDashboardPage: React.FC = () => {
       await api.patch(`/api/admin/maintenance/${maintenanceId}/conclude`);
       showFeedback('Manutenção concluída com sucesso! Equipamento liberado.', 'success');
       loadEquipamentos();
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao concluir manutenção', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao concluir manutenção'), 'error');
     }
   };
 
@@ -437,8 +456,8 @@ export const AdminDashboardPage: React.FC = () => {
         `Tempo limite de reserva atualizado para ${settings.max_rent_days} dias (e limite de ${settings.max_concurrent_items} itens simultâneos)!`,
         'success'
       );
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao atualizar parâmetros', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao atualizar parâmetros'), 'error');
     }
   };
 
@@ -447,8 +466,8 @@ export const AdminDashboardPage: React.FC = () => {
       await api.patch(`/api/admin/users/${userId}/toggle-block`);
       showFeedback('Status de bloqueio do usuário alterado com sucesso!', 'success');
       loadRegrasEUsuarios();
-    } catch (err: any) {
-      showFeedback(err.response?.data?.error || 'Erro ao alterar bloqueio', 'error');
+    } catch (err: unknown) {
+      showFeedback(getApiErrorMessage(err, 'Erro ao alterar bloqueio'), 'error');
     }
   };
 

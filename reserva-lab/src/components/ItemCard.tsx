@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Item } from '../types';
-import { ItemIllustration, getItemPhoto } from './ItemIllustration';
+import { ItemIllustration } from './ItemIllustration';
+import { getItemPhoto } from '../utils/itemMedia';
 
 interface ItemCardProps {
   item: Item;

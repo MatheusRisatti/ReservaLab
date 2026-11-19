@@ -1,7 +1,8 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../services/api';
 import { getApiErrorMessage } from '../services/errors';
 import type { Item } from '../types';
+import { formatDurationSummary } from '../utils/dateFormat';
 import { DateTimePicker } from './DateTimePicker';
 
 interface ReservationModalProps {
@@ -14,22 +15,10 @@ interface ReservationModalProps {
   onConflict: () => void;
 }
 
-const MS_PER_HOUR = 60 * 60 * 1000;
-const MS_PER_DAY = 24 * MS_PER_HOUR;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 function formatDateTime(value: string): string {
   return new Date(value).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-}
-
-export function formatDurationSummary(pickupIso: string, returnIso: string): string {
-  const diffMs = new Date(returnIso).getTime() - new Date(pickupIso).getTime();
-  if (diffMs <= 0 || Number.isNaN(diffMs)) return '0h';
-  const totalHours = Math.round(diffMs / MS_PER_HOUR);
-  const days = Math.floor(totalHours / 24);
-  const hours = totalHours % 24;
-  if (days === 0) return `${hours} hora${hours === 1 ? '' : 's'}`;
-  if (hours === 0) return `${days} dia${days === 1 ? '' : 's'}`;
-  return `${days} dia${days === 1 ? '' : 's'} e ${hours}h`;
 }
 
 export const ReservationModal: React.FC<ReservationModalProps> = ({
@@ -55,8 +44,16 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [highlightHint, setHighlightHint] = useState(false);
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
 
   const reasonTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNowMs(Date.now());
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const hasBothDates = modalPickupAt.trim() !== '' && modalReturnAt.trim() !== '';
 
@@ -87,7 +84,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
     const returnTime = new Date(modalReturnAt).getTime();
     if (Number.isNaN(pickupTime) || Number.isNaN(returnTime)) {
       validationMessage = 'Informe datas e horários válidos para retirada e devolução.';
-    } else if (pickupTime <= Date.now()) {
+    } else if (pickupTime <= nowMs) {
       validationMessage = 'A data e o horário de retirada devem estar no futuro.';
     } else if (returnTime <= pickupTime) {
       validationMessage = 'A devolução deve ser posterior à data e horário de retirada.';
@@ -237,13 +234,14 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
             variant="modal"
             label="1. Data e Horário de Retirada"
             value={modalPickupAt}
-            minDate={new Date()}
+            minDate={new Date(nowMs)}
             defaultHour={9}
             hasError={highlightHint && !modalPickupAt.trim()}
             placeholder="Escolher dia de retirada"
             isOpen={openPicker === 'pickup'}
             onOpenChange={(open) => setOpenPicker(open ? 'pickup' : null)}
             onChange={(val) => {
+              setNowMs(Date.now());
               setModalPickupAt(val);
               setHighlightHint(false);
               setError('');
@@ -264,7 +262,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
                 : `2. Data e Horário de Devolução (Máx. ${maxRentDays} dias)`
             }
             value={modalReturnAt}
-            minDate={pickupDateObj ?? new Date()}
+            minDate={pickupDateObj ?? new Date(nowMs)}
             maxDate={maxAllowedReturnDate}
             rangeStart={pickupDateObj}
             defaultHour={18}
@@ -274,6 +272,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({
             isOpen={openPicker === 'return'}
             onOpenChange={(open) => setOpenPicker(open ? 'return' : null)}
             onChange={(val) => {
+              setNowMs(Date.now());
               setModalReturnAt(val);
               setHighlightHint(false);
               setError('');

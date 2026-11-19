@@ -29,11 +29,19 @@ export const CatalogPage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [extensionNotifications, setExtensionNotifications] = useState<Reservation[]>([]);
   const [dismissedIds, setDismissedIds] = useState<string[]>([]);
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNowMs(Date.now());
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const hasPeriod = pickupAt !== '' && returnAt !== '';
   let periodError = '';
   if (hasPeriod) {
-    if (new Date(pickupAt).getTime() <= Date.now()) {
+    if (new Date(pickupAt).getTime() <= nowMs) {
       periodError = 'A data de retirada deve ser futura.';
     } else if (new Date(returnAt) <= new Date(pickupAt)) {
       periodError = 'A devolução deve ser depois da retirada.';
@@ -245,20 +253,26 @@ export const CatalogPage: React.FC = () => {
         <DateTimePicker
           label="Retirada"
           value={pickupAt}
-          minDate={new Date()}
+          minDate={new Date(nowMs)}
           defaultHour={9}
           placeholder="Qualquer data/hora"
-          onChange={(val) => setPickupAt(val)}
+          onChange={(val) => {
+            setNowMs(Date.now());
+            setPickupAt(val);
+          }}
         />
 
         <DateTimePicker
           label="Devolução"
           value={returnAt}
-          minDate={pickupAt ? new Date(pickupAt) : new Date()}
+          minDate={pickupAt ? new Date(pickupAt) : new Date(nowMs)}
           rangeStart={pickupAt ? new Date(pickupAt) : undefined}
           defaultHour={18}
           placeholder="Qualquer data/hora"
-          onChange={(val) => setReturnAt(val)}
+          onChange={(val) => {
+            setNowMs(Date.now());
+            setReturnAt(val);
+          }}
         />
 
         <label style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.9rem' }}>

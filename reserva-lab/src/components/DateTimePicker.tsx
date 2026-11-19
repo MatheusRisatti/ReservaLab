@@ -62,6 +62,12 @@ function endOfDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
 }
 
+function getDefaultBaseDate(): Date {
+  const date = new Date();
+  date.setHours(date.getHours() + 1);
+  return date;
+}
+
 export const DateTimePicker: React.FC<DateTimePickerProps> = ({
   label,
   value,
@@ -195,7 +201,7 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = ({
   };
 
   const handleSelectHourMinute = (newHour: number, newMinute: number) => {
-    const baseDate = parsedValue ?? minDate ?? new Date(Date.now() + 3600000);
+    const baseDate = parsedValue ?? minDate ?? getDefaultBaseDate();
     const updated = new Date(
       baseDate.getFullYear(),
       baseDate.getMonth(),
