@@ -6,7 +6,7 @@ import { getApiErrorMessage } from '../services/errors';
 import { card, field } from './authStyles';
 
 export const Login: React.FC = () => {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, isAdmin, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const registered = (location.state as { registered?: boolean } | null)?.registered;
@@ -16,7 +16,7 @@ export const Login: React.FC = () => {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  if (isAuthenticated) return <Navigate to="/" replace />;
+  if (isAuthenticated) return <Navigate to={isAdmin ? '/admin' : '/'} replace />;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
