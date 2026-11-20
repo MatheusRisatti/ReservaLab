@@ -11,7 +11,7 @@ describe('Unit — Validação dos Schemas Zod', () => {
     it('aceita dados válidos de cadastro e login', () => {
       expect(
         registerSchema.safeParse({
-          body: { name: 'Matheus', email: 'matheus@reservalab.com', password: '123456' },
+          body: { name: 'Matheus', email: 'matheus@reservalab.com', password: 'senha1234' },
         }).success
       ).toBe(true);
 
@@ -28,6 +28,18 @@ describe('Unit — Validação dos Schemas Zod', () => {
       });
 
       expect(result.success).toBe(false);
+    });
+
+    it('aplica a política de senha: mínimo de 8 e máximo de 72 caracteres', () => {
+      const build = (password: string) =>
+        registerSchema.safeParse({
+          body: { name: 'Matheus', email: 'matheus@reservalab.com', password },
+        }).success;
+
+      expect(build('1234567')).toBe(false);
+      expect(build('12345678')).toBe(true);
+      expect(build('a'.repeat(72))).toBe(true);
+      expect(build('a'.repeat(73))).toBe(false);
     });
   });
 

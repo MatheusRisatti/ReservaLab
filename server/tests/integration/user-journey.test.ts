@@ -280,11 +280,11 @@ async function registerAndLogin() {
   const registration = await request(app).post('/api/auth/register').send({
     name: 'Gustavo',
     email: 'gustavo@example.com',
-    password: '123456',
+    password: 'senha1234',
   });
   const login = await request(app).post('/api/auth/login').send({
     email: 'gustavo@example.com',
-    password: '123456',
+    password: 'senha1234',
   });
 
   expect(registration.status).toBe(201);

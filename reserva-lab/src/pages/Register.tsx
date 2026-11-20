@@ -45,8 +45,8 @@ export const Register: React.FC = () => {
           <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
         </label>
         <label style={field}>
-          Senha (mínimo 6 caracteres)
-          <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} autoComplete="new-password" />
+          Senha (mínimo 8 caracteres)
+          <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} autoComplete="new-password" />
         </label>
         <button className="btn btn-block" type="submit" disabled={submitting}>{submitting ? 'Cadastrando...' : 'Cadastrar'}</button>
       </form>

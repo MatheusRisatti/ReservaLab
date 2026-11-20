@@ -4,7 +4,10 @@ export const registerSchema = z.object({
   body: z.object({
     name: z.string().trim().min(1, 'O nome é obrigatório'),
     email: z.string().trim().email('Informe um e-mail válido'),
-    password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
+    password: z
+      .string()
+      .min(8, 'A senha deve ter pelo menos 8 caracteres')
+      .max(72, 'A senha deve ter no máximo 72 caracteres'),
   }),
 });
 

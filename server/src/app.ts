@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 import swaggerDocument from './docs/swagger.json';
 import { errorMiddleware } from './middlewares/error.middleware.js';
@@ -14,6 +15,13 @@ const corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
   : [];
 
+// Cabeçalhos de segurança HTTP. A CSP fica desativada porque a API só serve JSON e o Swagger UI usa scripts próprios.
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 app.use(
   cors({
     origin: corsOrigins.length > 0 ? corsOrigins : true,

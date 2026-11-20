@@ -75,7 +75,7 @@ describe('TASK-A01 — autenticação e status dinâmico do usuário', () => {
     const response = await request(app).post('/api/auth/register').send({
       name: '  Gustavo  ',
       email: '  GUSTAVO@EXAMPLE.COM  ',
-      password: '123456',
+      password: 'senha1234',
     });
 
     expect(response.status).toBe(201);
@@ -124,7 +124,7 @@ describe('TASK-A01 — autenticação e status dinâmico do usuário', () => {
     const response = await request(app).post('/api/auth/register').send({
       name: 'Gustavo',
       email: publicUser.email,
-      password: '123456',
+      password: 'senha1234',
     });
 
     expect(response.status).toBe(409);
