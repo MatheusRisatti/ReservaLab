@@ -306,4 +306,41 @@ describe('Fluxo de solicitação e análise de prazo estendido + GET /api/settin
     expect(alreadyDecided.status).toBe(400);
     expect(alreadyDecided.body.error).toContain('já foi analisada');
   });
+
+  it('não permite analisar solicitação PENDING cuja reserva já foi cancelada pelo usuário', async () => {
+    mockedPrisma.reservation.findUnique.mockResolvedValueOnce({
+      id: reservationId,
+      status: ReservationStatus.CANCELLED,
+      approval_status: 'PENDING',
+    });
+
+    const response = await request(app)
+      .patch(`/api/admin/extension-requests/${reservationId}/review`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ action: 'APPROVE' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toContain('não está mais agendada');
+    expect(mockedPrisma.reservation.update).not.toHaveBeenCalled();
+  });
+
+  it('não lista como pendente uma solicitação cuja reserva foi cancelada', async () => {
+    mockedPrisma.reservation.findMany.mockResolvedValue([]);
+
+    const response = await request(app)
+      .get('/api/admin/extension-requests')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(response.status).toBe(200);
+    expect(mockedPrisma.reservation.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          OR: [
+            { approval_status: { in: ['APPROVED', 'REJECTED'] } },
+            { approval_status: 'PENDING', status: ReservationStatus.SCHEDULED },
+          ],
+        },
+      })
+    );
+  });
 });

@@ -5,6 +5,14 @@ import { getApiErrorMessage } from '../../services/errors';
 
 type Tab = 'operacional' | 'analise_pedidos' | 'equipamentos' | 'regras_usuarios' | 'historico';
 
+const HISTORY_STATUS_LABEL: Record<string, { text: string; badge: string }> = {
+  SCHEDULED: { text: 'Agendada', badge: 'badge' },
+  ACTIVE_LOAN: { text: 'Em andamento', badge: 'badge badge-warning' },
+  COMPLETED: { text: 'Concluída', badge: 'badge' },
+  NO_SHOW: { text: 'Não compareceu', badge: 'badge badge-danger' },
+  CANCELLED: { text: 'Cancelada', badge: 'badge badge-danger' },
+};
+
 interface Category {
   id: string;
   name: string;
@@ -1439,16 +1447,18 @@ export const AdminDashboardPage: React.FC = () => {
               <p style={{ color: 'var(--muted)', fontSize: '0.9rem', margin: 0 }}>Rastreabilidade de todas as movimentações acadêmicas.</p>
             </div>
             <select
+              className="input"
+              aria-label="Filtrar histórico por status"
               value={historyFilterStatus}
               onChange={(e) => setHistoryFilterStatus(e.target.value)}
-              style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '0.85rem' }}
+              style={{ width: 'auto', minWidth: '220px', fontSize: '0.9rem' }}
             >
               <option value="">Todos os status</option>
-              <option value="SCHEDULED">SCHEDULED (Agendado)</option>
-              <option value="ACTIVE_LOAN">ACTIVE_LOAN (Retirado)</option>
-              <option value="COMPLETED">COMPLETED (Devolvido)</option>
-              <option value="NO_SHOW">NO_SHOW (Falta)</option>
-              <option value="CANCELLED">CANCELLED (Cancelado)</option>
+              <option value="SCHEDULED">Agendada</option>
+              <option value="ACTIVE_LOAN">Em andamento (retirada)</option>
+              <option value="COMPLETED">Concluída (devolvida)</option>
+              <option value="NO_SHOW">Não compareceu</option>
+              <option value="CANCELLED">Cancelada</option>
             </select>
           </div>
 
@@ -1480,7 +1490,9 @@ export const AdminDashboardPage: React.FC = () => {
                       {h.loan?.actual_return_at ? new Date(h.loan.actual_return_at).toLocaleDateString() : '-'}
                     </td>
                     <td style={{ padding: '0.75rem 1rem' }}>
-                      <span className="badge">{h.status}</span>
+                      <span className={HISTORY_STATUS_LABEL[h.status]?.badge ?? 'badge'}>
+                        {HISTORY_STATUS_LABEL[h.status]?.text ?? h.status}
+                      </span>
                     </td>
                     <td style={{ padding: '0.75rem 1rem', color: 'var(--muted)' }}>
                       {h.loan?.return_observation || '-'}

@@ -175,9 +175,11 @@ export async function getLoansHistory(req: Request, res: Response): Promise<void
 export async function listExtensionRequests(_req: Request, res: Response): Promise<void> {
   const requests = await prisma.reservation.findMany({
     where: {
-      approval_status: {
-        in: ['PENDING', 'APPROVED', 'REJECTED'],
-      },
+      OR: [
+        { approval_status: { in: ['APPROVED', 'REJECTED'] } },
+        // Pendentes só interessam enquanto a reserva continua agendada (não cancelada pelo usuário)
+        { approval_status: 'PENDING', status: ReservationStatus.SCHEDULED },
+      ],
     },
     orderBy: { created_at: 'desc' },
     include: {
@@ -229,10 +231,19 @@ export async function reviewExtensionRequest(req: Request, res: Response): Promi
     return;
   }
 
+  if (reservation.status !== ReservationStatus.SCHEDULED) {
+    res.status(400).json({
+      error: 'Esta reserva não está mais agendada (foi cancelada ou já finalizada) e não pode ser analisada',
+    });
+    return;
+  }
+
   const trimmedReason = decision_reason?.trim() || null;
 
+  // O filtro por status/aprovação na própria atualização evita que uma reserva cancelada
+  // ou já analisada entre o findUnique e o update seja reativada por engano.
   const updatedReservation = await prisma.reservation.update({
-    where: { id },
+    where: { id, status: ReservationStatus.SCHEDULED, approval_status: 'PENDING' },
     data: {
       approval_status: action === 'APPROVE' ? 'APPROVED' : 'REJECTED',
       admin_decision_reason: trimmedReason,
